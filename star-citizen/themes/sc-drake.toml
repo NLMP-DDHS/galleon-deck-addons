@@ -1,0 +1,14 @@
+# Star Citizen: Drake Interplanetary. Industrial amber on scorched black.
+bg = "#0c0804"
+key_bg = "#150e06"
+fg = "#ff9d2e"
+accent = "#ffe066"
+dim = "#8a6a45"
+border = "#5a3510"
+frame = "#ff7a00"
+tick = "accent"
+key_style = "hud"
+radius = 12
+border_width = 3
+font = "Rajdhani:bold"
+clock_font = "Orbitron:bold"

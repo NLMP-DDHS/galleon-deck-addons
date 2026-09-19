@@ -1,0 +1,150 @@
+# Star Citizen profile, from the star-citizen add-on for galleon-deck.
+#
+# The deck switches here by itself while the game window has focus (the
+# auto_switch rule below), and back to your fallback profile when you leave it.
+#
+# Keys press the game's keyboard binds from Star Citizen 4.x defaults. Each key
+# names its game action in `sc_action`; `galleon-addon run star-citizen sync-binds`
+# (or the SYNC key on the "look" page) re-reads your in-game keybinds and updates
+# these keys to match, so rebinding in the game never leaves the deck behind.
+# Keys drawn dim have no keyboard bind in the game yet: bind them in
+# Options > Keybindings, then sync.
+#
+# A bright frame marks a hold action: keep the key down, as you would on the
+# keyboard (quantum spool, autoland, ping, radial menus, power to max, ...).
+
+theme = "sc-mobiglas"
+start_page = "flight"
+auto_switch = [
+  { class = '(?i)^starcitizen(\.exe)?$' },
+]
+
+[[page]]
+name = "flight"
+keys = [
+  { icon = "\U000F14DE", label = "READY", keys = "RIGHTALT+R", sc_action = "spaceship_general.v_flightready" },
+  { icon = "\U000F0425", label = "POWER", key = "U", sc_action = "spaceship_power.v_power_toggle" },
+  { icon = "\U000F1741", label = "QUANTUM", border = "accent", key = "B", sc_action = "spaceship_movement.v_master_mode_cycle_long" },
+  { icon = "\U000F05D4", label = "GEAR", key = "N", sc_action = "spaceship_movement.v_toggle_landing_system" },
+  { icon = "\U000F05D4", label = "AUTOLAND", border = "accent", key = "N", sc_action = "spaceship_movement.v_autoland" },
+  { icon = "\U000F0003", label = "ATC", keys = "LEFTALT+N", sc_action = "spaceship_movement.v_atc_request" },
+  { icon = "\U000F0D49", label = "DECOUPLE", key = "C", sc_action = "spaceship_movement.v_ifcs_vector_decoupling_toggle" },
+  { icon = "\U000F0D60", label = "CRUISE", keys = "LEFTALT+C", sc_action = "spaceship_movement.v_ifcs_throttle_swap_mode" },
+  { icon = "\U000F0434", label = "VTOL", key = "K", sc_action = "spaceship_movement.v_vtol_toggle" },
+  { icon = "\U000F0C4C", label = "LIGHTS", key = "L", sc_action = "lights_controller.v_lights" },
+  { icon = "\U000F081C", label = "OPEN", fg = "dim", sc_action = "spaceship_general.v_open_all_doors", sc_unbound = true },
+  { icon = "\U000F081B", label = "CLOSE", fg = "dim", sc_action = "spaceship_general.v_close_all_doors", sc_unbound = true },
+]
+
+[[page]]
+name = "combat"
+keys = [
+  { icon = "\U000F0D72", label = "DECOY", key = "H", sc_action = "spaceship_defensive.v_weapon_countermeasure_decoy_launch" },
+  { icon = "\U000F059D", label = "NOISE", key = "J", sc_action = "spaceship_defensive.v_weapon_countermeasure_noise_launch" },
+  { icon = "\U000F01A4", label = "GIMBAL", key = "G", sc_action = "spaceship_weapons.v_weapon_gimbals_state_toggle" },
+  { icon = "\U000F0BD0", label = "HOSTILE", key = "5", sc_action = "spaceship_targeting_advanced.v_target_cycle_hostile_fwd" },
+  { icon = "\U000F0005", label = "ATTACKER", key = "4", sc_action = "spaceship_targeting_advanced.v_target_cycle_attacker_fwd" },
+  { icon = "\U000F08C5", label = "FRIENDLY", key = "6", sc_action = "spaceship_targeting_advanced.v_target_cycle_friendly_fwd" },
+  { icon = "\U000F04FE", label = "IN VIEW", key = "T", sc_action = "spaceship_targeting_advanced.v_target_cycle_in_view_fwd" },
+  { icon = "\U000F0A77", label = "SUBTARGET", key = "R", sc_action = "spaceship_targeting_advanced.v_target_cycle_subitem_fwd" },
+  { icon = "\U000F0F45", label = "UNLOCK", keys = "LEFTALT+T", sc_action = "spaceship_targeting.v_target_unlock" },
+  { icon = "\U000F01A3", label = "AIM MODE", keys = "RIGHTALT+G", sc_action = "spaceship_weapons.v_weapon_aim_type_cycle" },
+  { icon = "\U000F18FE", label = "LOOK BACK", border = "accent", key = "COMMA", sc_action = "seat_general.v_view_look_behind" },
+  { icon = "\U000F00E6", label = "HAIL", key = "9", sc_action = "spaceship_target_hailing.v_target_hail" },
+]
+
+[[page]]
+name = "power"
+keys = [
+  { icon = "\U000F04E5", label = "WEP +", key = "F5", sc_action = "spaceship_power.v_engineering_assignment_weapons_increase" },
+  { icon = "\U000F01FA", label = "THR +", key = "F6", sc_action = "spaceship_power.v_engineering_assignment_engine_increase" },
+  { icon = "\U000F0498", label = "SHD +", key = "F7", sc_action = "spaceship_power.v_engineering_assignment_shields_increase" },
+  { icon = "\U000F04E5", label = "WEP -", keys = "LEFTALT+F5", sc_action = "spaceship_power.v_engineering_assignment_weapons_decrease" },
+  { icon = "\U000F01FB", label = "THR -", keys = "LEFTALT+F6", sc_action = "spaceship_power.v_engineering_assignment_engine_decrease" },
+  { icon = "\U000F0499", label = "SHD -", keys = "LEFTALT+F7", sc_action = "spaceship_power.v_engineering_assignment_shields_decrease" },
+  { icon = "\U000F0787", label = "WEAPONS", key = "P", sc_action = "spaceship_power.v_power_toggle_weapons" },
+  { icon = "\U000F0210", label = "THRUSTERS", key = "I", sc_action = "spaceship_power.v_power_toggle_thrusters" },
+  { icon = "\U000F0780", label = "SHIELDS", key = "O", sc_action = "spaceship_power.v_power_toggle_shields" },
+  { icon = "\U000F099B", label = "RESET", key = "F8", sc_action = "spaceship_power.v_engineering_assignment_reset" },
+  { icon = "\U000F0425", label = "POWER", key = "U", sc_action = "spaceship_power.v_power_toggle" },
+  { icon = "\U000F14DE", label = "READY", keys = "RIGHTALT+R", sc_action = "spaceship_general.v_flightready" },
+]
+
+[[page]]
+name = "ops"
+keys = [
+  { icon = "\U000F0B84", label = "SCAN", key = "V", sc_action = "seat_general.v_toggle_scan_mode" },
+  { icon = "\U000F0437", label = "PING", border = "accent", key = "TAB", sc_action = "spaceship_radar.v_invoke_ping" },
+  { icon = "\U000F08B7", label = "MINE / SALV", key = "M", sc_action = "seat_general.v_toggle_mining_mode" },
+  { icon = "\U000F0AC8", label = "MODULE 1", keys = "LEFTALT+1", sc_action = "spaceship_mining.v_mining_use_consumable1" },
+  { icon = "\U000F0AC8", label = "MODULE 2", keys = "LEFTALT+2", sc_action = "spaceship_mining.v_mining_use_consumable2" },
+  { icon = "\U000F0AC8", label = "MODULE 3", keys = "LEFTALT+3", sc_action = "spaceship_mining.v_mining_use_consumable3" },
+  { icon = "\U000F03D6", label = "JETTISON", keys = "LEFTALT+J", sc_action = "spaceship_mining.v_jettison_volatile_cargo" },
+  { icon = "\U000F18D8", label = "CARGO REQ", keys = "RIGHTALT+N", sc_action = "spaceship_movement.v_atc_loading_area_request" },
+  { icon = "\U000F10AC", label = "DOCK CAM", border = "accent", key = "0", sc_action = "spaceship_docking.v_dock_toggle_view" },
+  { icon = "\U000F033E", label = "PORTS", keys = "RIGHTALT+K", sc_action = "spaceship_general.v_toggle_all_portlocks" },
+  { icon = "\U000F0594", label = "NIGHT VIS", keys = "RIGHTALT+L", sc_action = "seat_general.v_light_amplification_toggle" },
+  { icon = "\U000F0843", label = "MFD PAGE", keys = "LEFTALT+E", sc_action = "vehicle_mfd.v_mfd_interact_cycle_forwards_short" },
+]
+
+[[page]]
+name = "comms"
+keys = [
+  { icon = "\U000F04F6", label = "MOBIGLAS", key = "F1", sc_action = "spaceship_hud.mobiglas" },
+  { icon = "\U000F034D", label = "MAP", key = "F2", sc_action = "spaceship_hud.v_starmap" },
+  { icon = "\U000F03F7", label = "COMMS", key = "F11", sc_action = "default.toggle_contact" },
+  { icon = "\U000F0B79", label = "CHAT", key = "F12", sc_action = "default.toggle_chat" },
+  { icon = "\U000F0513", label = "ACCEPT", key = "LEFTBRACE", sc_action = "default.notification_accept" },
+  { icon = "\U000F0511", label = "DECLINE", key = "RIGHTBRACE", sc_action = "default.notification_decline" },
+  { icon = "\U000F036C", label = "TALK", border = "accent", key = "KPPLUS", sc_action = "player_input_optical_tracking.foip_pushtotalk" },
+  { icon = "\U000F02CE", label = "CHANNEL", key = "KPDOT", sc_action = "player_input_optical_tracking.foip_cyclechannel" },
+  { icon = "\U000F0108", label = "CAMERA", key = "F4", sc_action = "spaceship_view.v_view_cycle_fwd" },
+  { icon = "\U000F1821", label = "EMOTES", page = "emotes", fg = "accent" },
+  { icon = "\U000F0100", label = "SHOT", confirm = true, exec = 'f="$HOME/Pictures/Screenshots/StarCitizen_$(date +%F_%H-%M-%S).png"; mkdir -p "${f%/*}"; if command -v grim >/dev/null; then grim "$f"; elif command -v spectacle >/dev/null; then spectacle -b -n -f -o "$f"; elif command -v gnome-screenshot >/dev/null; then gnome-screenshot -f "$f"; elif command -v scrot >/dev/null; then scrot "$f"; else exit 1; fi && notify-send -i "$f" "Screenshot saved" "${f##*/}"' },
+  { icon = "\U000F0208", label = "HEAD TRACK", key = "KPSLASH", sc_action = "player_input_optical_tracking.headtrack_enabled" },
+]
+
+[[page]]
+name = "on foot"
+keys = [
+  { icon = "\U000F0DC0", label = "HELMET", keys = "RIGHTALT+H", sc_action = "player.toggleEquipHelmet" },
+  { icon = "\U000F0244", label = "LIGHT", key = "T", sc_action = "player.toggle_flashlight" },
+  { icon = "\U000F197D", label = "VISOR WIPE", keys = "LEFTALT+X", sc_action = "player.visor_wipe" },
+  { icon = "\U000F0E10", label = "INVENTORY", key = "I", sc_action = "player_choice.pc_pit_inventory" },
+  { icon = "\U000F03D7", label = "LOOT", border = "accent", key = "I", sc_action = "player_choice.pc_pit_looting" },
+  { icon = "\U000F06EF", label = "MEDS", border = "accent", key = "4", sc_action = "player_choice.pc_qs_consumables" },
+  { icon = "\U000F0703", label = "PRIMARY", key = "1", sc_action = "player.select_primary_pit" },
+  { icon = "\U000F09FC", label = "SECONDARY", key = "2", sc_action = "player.select_secondary_pit" },
+  { icon = "\U000F0703", label = "SIDEARM", key = "3", sc_action = "player.select_sidearm_pit" },
+  { icon = "\U000F0691", label = "THROWABLE", border = "accent", key = "G", sc_action = "player_choice.pc_qs_grenades" },
+  { icon = "\U000F0D57", label = "STANCE", keys = "LEFTALT+R", sc_action = "player.toggle_lowered" },
+  { icon = "\U000F08FF", label = "FIRE MODE", key = "B", sc_action = "player.weapon_change_firemode" },
+]
+
+[[page]]
+name = "emotes"
+keys = [
+  { icon = "\U000F1821", label = "WAVE", fg = "dim", sc_action = "player_emotes.emote_wave", sc_unbound = true },
+  { icon = "\U000F0E47", label = "SALUTE", fg = "dim", sc_action = "player_emotes.emote_salute", sc_unbound = true },
+  { icon = "\U000F17C4", label = "GREET", fg = "dim", sc_action = "player_emotes.emote_greet", sc_unbound = true },
+  { icon = "\U000F02C7", label = "POINT", fg = "dim", sc_action = "player_emotes.emote_point", sc_unbound = true },
+  { icon = "\U000F0CC3", label = "SIT", fg = "dim", sc_action = "player_emotes.emote_sit", sc_unbound = true },
+  { icon = "\U000F064B", label = "AT EASE", fg = "dim", sc_action = "player_emotes.emote_atease", sc_unbound = true },
+  { icon = "\U000F0FD7", label = "FLEX", fg = "dim", sc_action = "player_emotes.emote_flex", sc_unbound = true },
+  { icon = "\U000F0538", label = "GLOAT", fg = "dim", sc_action = "player_emotes.emote_gloat", sc_unbound = true },
+  { icon = "\U000F0A55", label = "COME", fg = "dim", sc_action = "player_emotes.emote_come", sc_unbound = true },
+  { icon = "\U000F0C6C", label = "CRY", fg = "dim", sc_action = "player_emotes.emote_cry", sc_unbound = true },
+  { icon = "\U000F0C69", label = "ANGRY", fg = "dim", sc_action = "player_emotes.emote_angry", sc_unbound = true },
+  { icon = "\U000F004D", label = "BACK", page = "back", fg = "accent" },
+]
+
+[[page]]
+name = "look"
+keys = [
+  { set_theme = "sc-mobiglas" }, { set_theme = "sc-rsi" }, { set_theme = "sc-aegis" },
+  { set_theme = "sc-drake" }, { set_theme = "sc-anvil" }, { set_theme = "sc-origin" },
+  { set_theme = "sc-misc" }, {}, {},
+  { icon = "\U000F0450", label = "SYNC BINDS", confirm = true, exec = "galleon-addon run star-citizen sync-binds" },
+  {},
+  { icon = "\U000F004D", label = "BACK", page = "back", fg = "accent" },
+]

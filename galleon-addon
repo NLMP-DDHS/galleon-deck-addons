@@ -1,0 +1,284 @@
+#!/usr/bin/env python3
+"""Add or remove galleon-deck add-ons: ready-made profiles, themes and tools.
+
+  galleon-addon list                   what's available and what's installed
+  galleon-addon install NAME [--force] install or upgrade an add-on
+  galleon-addon remove NAME            remove it again, and anything pointing at it
+  galleon-addon run NAME COMMAND ...   run one of the add-on's commands
+
+An add-on is a folder next to this script holding addon.toml plus any of:
+  profiles/*.toml   copied to ~/.config/galleon-deck/profiles/
+  themes/*.toml     copied to ~/.config/galleon-deck/themes/
+  images/...        copied to ~/.config/galleon-deck/addons/NAME/images/ (refer to
+                    them from keys as image = "addons/NAME/images/x.png")
+The running service picks the files up within a second; nothing needs restarting.
+"""
+
+import datetime
+import json
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+import tomllib
+
+HERE = os.path.dirname(os.path.realpath(__file__))
+STATE_DIR = os.path.join(os.environ.get("XDG_STATE_HOME") or os.path.expanduser("~/.local/state"),
+                         "galleon-deck", "addons")
+FOLDERS = ("themes", "profiles", "images")  # install order: themes before the profiles using them
+
+
+def die(msg):
+    sys.exit(f"galleon-addon: {msg}")
+
+
+def load_galleon_deck():
+    """The galleon-deck service module, for its config paths and TOML writers."""
+    candidates = [os.environ.get("GALLEON_DECK_SRC")]
+    exe = shutil.which("galleon-deck")
+    if exe:
+        bin_dir = os.path.dirname(os.path.realpath(exe))
+        candidates += [os.path.join(bin_dir, "..", "src"), os.path.join(bin_dir, "..", "share", "galleon-deck")]
+    candidates.append(os.path.join(os.environ.get("XDG_DATA_HOME") or os.path.expanduser("~/.local/share"), "galleon-deck"))
+    for src in filter(None, candidates):
+        if os.path.isfile(os.path.join(src, "galleon_deck.py")):
+            sys.path.insert(0, os.path.abspath(src))
+            import galleon_deck
+            return galleon_deck
+    die("can't find galleon-deck. Install it first, or set GALLEON_DECK_SRC to the folder holding galleon_deck.py")
+
+
+def version(text):
+    return tuple(int(x) for x in str(text).split(".") if x.isdigit())
+
+
+def available():
+    out = {}
+    for name in sorted(os.listdir(HERE)):
+        manifest = os.path.join(HERE, name, "addon.toml")
+        if os.path.isfile(manifest):
+            with open(manifest, "rb") as f:
+                out[name] = {**tomllib.load(f), "dir": os.path.join(HERE, name)}
+    return out
+
+
+def addon(name):
+    addons = available()
+    if name not in addons:
+        die(f"no add-on called {name!r} (have: {', '.join(addons) or 'none'})")
+    return addons[name]
+
+
+def state_path(name):
+    return os.path.join(STATE_DIR, name + ".json")
+
+
+def installed(name):
+    try:
+        with open(state_path(name)) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def targets(gd, name, meta):
+    """(source, destination) for every file the add-on installs, in install order."""
+    out = []
+    for folder in FOLDERS:
+        src_root = os.path.join(meta["dir"], folder)
+        dst_root = os.path.join(gd.CONFIG_DIR, "addons", name, "images") if folder == "images" \
+            else os.path.join(gd.CONFIG_DIR, folder)
+        for dirpath, _, files in os.walk(src_root):
+            for fname in sorted(files):
+                if folder != "images" and not fname.endswith(".toml"):
+                    continue
+                src = os.path.join(dirpath, fname)
+                out.append((src, os.path.join(dst_root, os.path.relpath(src, src_root))))
+    return out
+
+
+def backup(name, paths):
+    """Copy files aside before they're overwritten or removed. Returns the folder."""
+    paths = [p for p in paths if os.path.isfile(p)]
+    if not paths:
+        return None
+    folder = os.path.join(STATE_DIR, "backups", f"{name}-{datetime.datetime.now():%Y%m%d-%H%M%S}")
+    os.makedirs(folder, exist_ok=True)
+    for p in paths:
+        shutil.copy2(p, os.path.join(folder, os.path.basename(p)))
+    return folder
+
+
+def link_self():
+    """Put galleon-addon on PATH so deck keys can call it (e.g. a sync key)."""
+    bin_dir = os.path.expanduser("~/.local/bin")
+    link = os.path.join(bin_dir, "galleon-addon")
+    if os.path.lexists(link) or not os.path.isdir(bin_dir):
+        return
+    os.symlink(os.path.realpath(__file__), link)
+    print(f"Linked {link} -> {os.path.realpath(__file__)}")
+
+
+def run_command(gd, name, meta, command_line):
+    argv = shlex.split(command_line)
+    command = meta.get("commands", {}).get(argv[0])
+    if not command:
+        die(f"{name} has no command {argv[0]!r} (have: {', '.join(meta.get('commands', {})) or 'none'})")
+    exe = os.path.join(meta["dir"], command)
+    env = {**os.environ, "GALLEON_DECK_CONFIG": gd.CONFIG_DIR, "GALLEON_ADDON_DIR": meta["dir"]}
+    return subprocess.run([exe] + argv[1:], env=env).returncode
+
+
+# ------------------------------------------------------------ commands ---
+
+def cmd_list(gd):
+    addons = available()
+    if not addons:
+        print("No add-ons found next to this script.")
+    for name, meta in addons.items():
+        state = installed(name)
+        if not state:
+            status = "not installed"
+        elif version(state["version"]) < version(meta.get("version", "0")):
+            status = f"installed {state['version']}, upgrade available"
+        else:
+            status = f"installed {state['version']}"
+        print(f"{name}  {meta.get('version', '?')}  [{status}]")
+        print(f"    {meta.get('title', name)}: {meta.get('description', '')}")
+    print(f"\ngalleon-deck {getattr(gd, 'VERSION', 'older than 1.1.0')}, config in {gd.CONFIG_DIR}")
+
+
+def cmd_install(gd, name, force=False):
+    meta = addon(name)
+    have = getattr(gd, "VERSION", "1.0.0")
+    if version(have) < version(meta.get("requires", "0")):
+        die(f"{name} needs galleon-deck {meta['requires']} or newer (this is {have}). Update galleon-deck first.")
+    state = installed(name) or {"files": []}
+    plan = targets(gd, name, meta)
+    if not plan:
+        die(f"{name} has no profiles, themes or images to install")
+    clashes = [dst for _, dst in plan if os.path.exists(dst) and dst not in state["files"]]
+    if clashes and not force:
+        die("these files already exist and aren't from this add-on:\n  " + "\n  ".join(clashes)
+            + "\nRename them, or pass --force to back them up and replace them.")
+
+    # Upgrades keep the theme you picked for each profile.
+    kept = {}
+    for _, dst in plan:
+        if dst.endswith(".toml") and os.path.dirname(dst) == gd.PROFILE_DIR and os.path.isfile(dst):
+            with open(dst, "rb") as f:
+                old = tomllib.load(f)
+            kept[dst] = {k: old[k] for k in ("theme", "theme_overrides") if k in old}
+    saved = backup(name, [dst for _, dst in plan if dst.endswith(".toml") and os.path.dirname(dst) == gd.PROFILE_DIR]
+                   + clashes)
+
+    for src, dst in plan:
+        os.makedirs(os.path.dirname(dst), exist_ok=True)
+        shutil.copyfile(src, dst + ".tmp")
+        os.replace(dst + ".tmp", dst)
+    themes = gd.all_themes()
+    for dst, fields in kept.items():
+        if fields.get("theme") in themes:
+            gd.set_top_level(dst, "theme", fields["theme"])
+        for key, value in fields.get("theme_overrides", {}).items():
+            gd.set_value(dst, "theme_overrides", key, value)
+
+    old_version = state.get("version")
+    stale = [p for p in state["files"] if p not in [dst for _, dst in plan]]
+    for path in stale:  # files an older version had and this one doesn't
+        if os.path.isfile(path):
+            os.remove(path)
+    os.makedirs(STATE_DIR, exist_ok=True)
+    with open(state_path(name), "w") as f:
+        json.dump({"version": meta.get("version", "0"), "source": meta["dir"],
+                   "installed": datetime.datetime.now().isoformat(timespec="seconds"),
+                   "files": [dst for _, dst in plan]}, f, indent=2)
+
+    verb = f"Upgraded {name} {old_version} -> {meta.get('version')}" if old_version else f"Installed {name} {meta.get('version')}"
+    print(verb + ":")
+    for _, dst in plan:
+        print("  " + dst)
+    if saved:
+        print(f"Previous files backed up in {saved}")
+    link_self()
+    for hook in meta.get("hooks", {}).get("post_install", []):
+        if run_command(gd, name, meta, hook) != 0:
+            print(f"galleon-addon: post-install step {hook!r} failed; the add-on is installed anyway", file=sys.stderr)
+
+
+def cmd_remove(gd, name):
+    state = installed(name)
+    if not state:
+        die(f"{name} isn't installed")
+    files = state["files"]
+    profiles = {os.path.splitext(os.path.basename(p))[0] for p in files if os.path.dirname(p) == gd.PROFILE_DIR}
+    themes = {os.path.splitext(os.path.basename(p))[0] for p in files if os.path.dirname(p) == gd.THEME_DIR}
+
+    # First point everything else away from what's going, so the service never
+    # sees a config that refers to a missing profile or theme.
+    with open(gd.CONFIG_PATH, "rb") as f:
+        cfg = tomllib.load(f)
+    if cfg.get("start_profile") in profiles:
+        gd.set_value(gd.CONFIG_PATH, None, "start_profile", None, remove=True)
+        print(f"config.toml: start_profile was {cfg['start_profile']}; now the first profile")
+    auto = cfg.get("auto_switch", {})
+    if auto.get("fallback") in profiles:
+        gd.set_value(gd.CONFIG_PATH, "auto_switch", "fallback", None, remove=True)
+        print(f"config.toml: auto_switch fallback was {auto['fallback']}; removed")
+    rules = auto.get("rules", [])
+    keep = [r for r in rules if r.get("profile") not in profiles]
+    if len(keep) != len(rules):
+        gd.set_value(gd.CONFIG_PATH, "auto_switch", "rules", keep)
+        print(f"config.toml: removed {len(rules) - len(keep)} auto_switch rule(s) pointing at {', '.join(sorted(profiles))}")
+    for path in sorted(os.listdir(gd.PROFILE_DIR)):
+        full = os.path.join(gd.PROFILE_DIR, path)
+        if not path.endswith(".toml") or full in files:
+            continue
+        with open(full, "rb") as f:
+            theme = tomllib.load(f).get("theme")
+        if theme in themes:
+            gd.set_top_level(full, "theme", gd.DEFAULT_THEME)
+            print(f"profiles/{path}: theme {theme} is going; switched to {gd.DEFAULT_THEME}")
+
+    saved = backup(name, [p for p in files if os.path.dirname(p) == gd.PROFILE_DIR])
+    for path in files:
+        if os.path.isfile(path):
+            os.remove(path)
+    images = os.path.join(gd.CONFIG_DIR, "addons", name)
+    if os.path.isdir(images):
+        shutil.rmtree(images)
+    os.remove(state_path(name))
+    print(f"Removed {name} ({len(files)} files).")
+    if saved:
+        print(f"Its profile, with your binds and theme, is backed up in {saved}")
+
+
+def main():
+    args = sys.argv[1:]
+    if not args or args[0] in ("-h", "--help", "help"):
+        print(__doc__.strip())
+        return
+    gd = load_galleon_deck()
+    cmd, rest = args[0], args[1:]
+    if cmd == "list":
+        cmd_list(gd)
+    elif cmd == "install" and rest:
+        cmd_install(gd, rest[0], force="--force" in rest[1:])
+    elif cmd == "remove" and rest:
+        cmd_remove(gd, rest[0])
+    elif cmd == "run" and len(rest) >= 2:
+        state = installed(rest[0])
+        meta = addon(rest[0]) if rest[0] in available() else None
+        if not meta and state:
+            with open(os.path.join(state["source"], "addon.toml"), "rb") as f:
+                meta = {**tomllib.load(f), "dir": state["source"]}
+        if not meta:
+            die(f"no add-on called {rest[0]!r}")
+        sys.exit(run_command(gd, rest[0], meta, shlex.join(rest[1:])))
+    else:
+        die("usage: galleon-addon list | install NAME [--force] | remove NAME | run NAME COMMAND [ARGS]")
+
+
+if __name__ == "__main__":
+    main()

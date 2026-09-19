@@ -1,0 +1,316 @@
+#!/usr/bin/env python3
+"""Match the Star Citizen deck profile to your in-game keyboard binds.
+
+Every deck key that names a game action (`sc_action = "actionmap.action"`) is
+set to whatever that action is bound to on your keyboard: the game's defaults
+(read from Data.p4k, so they follow patches) with your own rebinds from
+user/client/0/Profiles/default/actionmaps.xml on top. Keys whose action has no
+keyboard bind are drawn dim and do nothing until you bind them in the game.
+
+Usage: sc-sync-binds [--game-dir DIR] [--channel LIVE] [--profile PATH] [--dry-run] [--quiet]
+
+Only the key lines change; comments and layout in the profile are kept. Nothing
+in the game folder is written to.
+"""
+
+import argparse
+import glob
+import hashlib
+import json
+import os
+import re
+import struct
+import sys
+import tomllib
+import xml.etree.ElementTree as ET
+
+CONFIG_DIR = os.environ.get("GALLEON_DECK_CONFIG") or os.path.join(
+    os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config"), "galleon-deck")
+CACHE_DIR = os.path.join(os.environ.get("XDG_CACHE_HOME") or os.path.expanduser("~/.cache"), "galleon-deck")
+RSI = os.path.join("drive_c", "Program Files", "Roberts Space Industries", "StarCitizen")
+
+
+# ------------------------------------------------------------ game files ---
+
+def find_game_dirs():
+    """StarCitizen folders (the one holding LIVE, PTU, ...), most likely first."""
+    found = []
+    lug = os.path.expanduser("~/.config/starcitizen-lug/gamedir.conf")  # LUG helper
+    if os.path.isfile(lug):
+        found.append(open(lug).read().strip())
+    for prefix in ("~/Games/*", "~/.local/share/lutris/*", "~/.wine*", "~/Games/*/*",
+                   "~/.local/share/Steam/steamapps/compatdata/*/pfx"):
+        found += glob.glob(os.path.join(os.path.expanduser(prefix), RSI))
+    seen = []
+    for d in found:
+        if d and os.path.isdir(d) and d not in seen:
+            seen.append(d)
+    return seen
+
+
+def p4k_entry(path, wanted):
+    """Read one file from Data.p4k: a zip64 archive whose entries are stored or
+    zstd-compressed (method 100). Python's zipfile rejects its extra fields, so
+    the central directory is walked by hand."""
+    with open(path, "rb") as f:
+        f.seek(0, 2)
+        size = f.tell()
+        f.seek(max(0, size - 65558))
+        tail = f.read()
+        loc = tail.rfind(b"PK\x06\x07")
+        if loc < 0:
+            raise ValueError("no zip64 end record")
+        f.seek(struct.unpack_from("<Q", tail, loc + 8)[0])
+        rec = f.read(56)
+        if rec[:4] != b"PK\x06\x06":
+            raise ValueError("bad zip64 end record")
+        cd_size, cd_off = struct.unpack_from("<QQ", rec, 40)
+        f.seek(cd_off)
+        cd = f.read(cd_size)
+        target = wanted.lower().encode()
+        pos = 0
+        while cd[pos:pos + 4] == b"PK\x01\x02":
+            method, = struct.unpack_from("<H", cd, pos + 10)
+            csize, usize = struct.unpack_from("<II", cd, pos + 20)
+            nlen, xlen, clen = struct.unpack_from("<HHH", cd, pos + 28)
+            offset, = struct.unpack_from("<I", cd, pos + 42)
+            name = cd[pos + 46:pos + 46 + nlen]
+            if name.lower() == target:
+                extra = cd[pos + 46 + nlen:pos + 46 + nlen + xlen]
+                x = 0
+                while x + 4 <= len(extra):
+                    tag, length = struct.unpack_from("<HH", extra, x)
+                    if tag == 1:  # zip64 sizes and offset, present only for saturated fields
+                        q = x + 4
+                        if usize == 0xFFFFFFFF:
+                            usize, = struct.unpack_from("<Q", extra, q)
+                            q += 8
+                        if csize == 0xFFFFFFFF:
+                            csize, = struct.unpack_from("<Q", extra, q)
+                            q += 8
+                        if offset == 0xFFFFFFFF:
+                            offset, = struct.unpack_from("<Q", extra, q)
+                        break
+                    x += 4 + length
+                f.seek(offset)
+                header = f.read(30)
+                n, m = struct.unpack_from("<HH", header, 26)
+                f.seek(offset + 30 + n + m)
+                data = f.read(csize)
+                if method == 0:
+                    return data
+                if method in (93, 100):
+                    from compression import zstd  # Python 3.14+
+                    return zstd.decompress(data)
+                raise ValueError(f"{wanted}: unsupported compression {method}")
+            pos += 46 + nlen + xlen + clen
+    raise FileNotFoundError(wanted)
+
+
+def cryxml(data):
+    """Parse CryEngine binary XML ("CryXmlB") into an ElementTree element."""
+    if data[:8] != b"CryXmlB\0":
+        return ET.fromstring(data)
+    (_, ntab, ncount, atab, _, ctab, ccount, sdat, _) = struct.unpack_from("<9I", data, 8)
+
+    def string(off):
+        end = data.index(b"\0", sdat + off)
+        return data[sdat + off:end].decode("utf-8", "replace")
+
+    nodes = []
+    for i in range(ncount):
+        tag, content, nattr, nchild, _, first_attr, first_child, _ = struct.unpack_from("<IIHHIIII", data, ntab + i * 28)
+        el = ET.Element(string(tag))
+        for k in range(nattr):
+            ko, vo = struct.unpack_from("<II", data, atab + (first_attr + k) * 8)
+            el.set(string(ko), string(vo))
+        nodes.append((el, nchild, first_child))
+    children = struct.unpack_from(f"<{ccount}I", data, ctab)
+    for el, nchild, first in nodes:
+        for k in range(nchild):
+            el.append(nodes[children[first + k]][0])
+    return nodes[0][0]
+
+
+def default_binds(channel_dir):
+    """{"actionmap.action": keyboard input} from the game's defaultProfile.xml,
+    cached per Data.p4k version."""
+    p4k = os.path.join(channel_dir, "Data.p4k")
+    st = os.stat(p4k)
+    key = hashlib.sha1(f"{p4k}:{st.st_size}:{int(st.st_mtime)}".encode()).hexdigest()[:16]
+    cache = os.path.join(CACHE_DIR, f"sc-default-binds-{key}.json")
+    try:
+        with open(cache) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        pass
+    root = cryxml(p4k_entry(p4k, "Data\\Libs\\Config\\defaultProfile.xml"))
+    binds = {}
+    for amap in root.iter("actionmap"):
+        for action in amap.findall("action"):
+            kb = action.get("keyboard")
+            if kb is None and action.find("keyboard") is not None:
+                kb = action.find("keyboard").get("input")
+            binds[f"{amap.get('name')}.{action.get('name')}"] = (kb or "").strip()
+    os.makedirs(CACHE_DIR, exist_ok=True)
+    for old in glob.glob(os.path.join(CACHE_DIR, "sc-default-binds-*.json")):
+        os.remove(old)
+    with open(cache, "w") as f:
+        json.dump(binds, f)
+    return binds
+
+
+def user_binds(channel_dir):
+    """Your keyboard rebinds: {"actionmap.action": input}, "" where you unbound one."""
+    path = os.path.join(channel_dir, "user", "client", "0", "Profiles", "default", "actionmaps.xml")
+    if not os.path.isfile(path):
+        return {}
+    binds = {}
+    for amap in ET.parse(path).getroot().iter("actionmap"):
+        for action in amap.findall("action"):
+            for rebind in action.findall("rebind"):
+                value = rebind.get("input", "")
+                if value.startswith("kb1_") or value.startswith("kb_"):
+                    binds[f"{amap.get('name')}.{action.get('name')}"] = value.split("_", 1)[1].strip()
+    return binds
+
+
+# ------------------------------------------------------- key conversion ---
+
+MODIFIERS = {"lalt": "LEFTALT", "ralt": "RIGHTALT", "lctrl": "LEFTCTRL", "rctrl": "RIGHTCTRL",
+             "lshift": "LEFTSHIFT", "rshift": "RIGHTSHIFT"}
+NAMES = {
+    "np_divide": "KPSLASH", "np_multiply": "KPASTERISK", "np_subtract": "KPMINUS", "np_add": "KPPLUS",
+    "np_period": "KPDOT", "np_enter": "KPENTER", "minus": "MINUS", "equals": "EQUAL", "comma": "COMMA",
+    "period": "DOT", "slash": "SLASH", "backslash": "BACKSLASH", "lbracket": "LEFTBRACE",
+    "rbracket": "RIGHTBRACE", "semicolon": "SEMICOLON", "apostrophe": "APOSTROPHE", "grave": "GRAVE",
+    "pgup": "PAGEUP", "pgdn": "PAGEDOWN", "capslock": "CAPSLOCK", "scrolllock": "SCROLLLOCK",
+    "print": "SYSRQ", "pause": "PAUSE", "numlock": "NUMLOCK",
+}
+
+
+def to_deck(sc_input):
+    """A Star Citizen keyboard input ("lalt+n", "f6+lalt", "np_5") as a deck key
+    combo ("LEFTALT+N", "KP5"), or None for mouse/axis inputs a key can't press."""
+    mods, main = [], []
+    for part in sc_input.lower().split("+"):
+        if part in MODIFIERS:
+            mods.append(MODIFIERS[part])
+        elif part.startswith(("mouse", "mwheel", "maxis", "hmd_")):
+            return None
+        elif re.fullmatch(r"np_\d", part):
+            main.append("KP" + part[3])
+        else:
+            main.append(NAMES.get(part, part.upper()))
+    return "+".join(mods + main) if main or mods else None
+
+
+# -------------------------------------------------------------- profile ---
+
+def toml_str(text):
+    out = []
+    for ch in text:
+        o = ord(ch)
+        if ch in '"\\':
+            out.append("\\" + ch)
+        elif o < 0x20 or 0xE000 <= o <= 0xF8FF:
+            out.append(f"\\u{o:04X}")
+        elif o > 0xFFFF:
+            out.append(f"\\U{o:08X}")
+        else:
+            out.append(ch)
+    return '"' + "".join(out) + '"'
+
+
+def toml_inline(d):
+    def value(v):
+        if isinstance(v, bool):
+            return "true" if v else "false"
+        if isinstance(v, (int, float)):
+            return repr(v)
+        return toml_str(str(v))
+    return "{ " + ", ".join(f"{k} = {value(v)}" for k, v in d.items()) + " }"
+
+
+def sync(profile, binds, dry_run=False):
+    """Rewrite each `sc_action` key line of the profile. Returns a list of report lines."""
+    with open(profile) as f:
+        lines = f.read().split("\n")
+    report = []
+    for n, line in enumerate(lines):
+        if "sc_action" not in line:
+            continue
+        m = re.match(r"^(\s*)(\{.*\})(\s*,?\s*(#.*)?)$", line)
+        if not m:
+            continue
+        try:
+            key = tomllib.loads("k = " + m.group(2))["k"]
+        except tomllib.TOMLDecodeError:
+            continue
+        action = key.get("sc_action")
+        if not action:
+            continue
+        sc_input = binds.get(action)
+        combo = to_deck(sc_input) if sc_input else None
+        new = {k: v for k, v in key.items() if k not in ("key", "keys", "sc_unbound")}
+        if key.get("sc_unbound"):
+            new.pop("fg", None)  # we dimmed it; un-dim before deciding again
+        label = key.get("label", action)
+        if combo:
+            field = "key" if "+" not in combo else "keys"
+            ordered = {}
+            for k, v in new.items():  # keep key/keys where it was: after the look fields
+                if k == "sc_action":
+                    ordered[field] = combo
+                ordered[k] = v
+            new = ordered
+            old = key.get("key") or key.get("keys")
+            if old != combo:
+                report.append(f"  {label:<12} {old or '(unbound)'} -> {combo}")
+        else:
+            new["fg"] = "dim"
+            new["sc_unbound"] = True
+            why = f"bound to {sc_input}, which a key can't press" if sc_input else "no keyboard bind in the game"
+            if not key.get("sc_unbound"):
+                report.append(f"  {label:<12} {key.get('key') or key.get('keys')} -> unbound ({why})")
+            else:
+                report.append(f"  {label:<12} still unbound ({why})")
+        lines[n] = m.group(1) + toml_inline(new) + m.group(3)
+    if not dry_run:
+        with open(profile + ".tmp", "w") as f:
+            f.write("\n".join(lines))
+        os.replace(profile + ".tmp", profile)
+    return report
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--game-dir", help="the StarCitizen folder (holding LIVE, PTU, ...)")
+    ap.add_argument("--channel", default="LIVE", help="LIVE (default), PTU, EPTU, TECH-PREVIEW, ...")
+    ap.add_argument("--profile", default=os.path.join(CONFIG_DIR, "profiles", "star-citizen.toml"))
+    ap.add_argument("--dry-run", action="store_true", help="show what would change")
+    ap.add_argument("--quiet", action="store_true", help="print only problems")
+    args = ap.parse_args()
+
+    dirs = [args.game_dir] if args.game_dir else find_game_dirs()
+    channel = next((os.path.join(d, args.channel) for d in dirs
+                    if os.path.isfile(os.path.join(d, args.channel, "Data.p4k"))), None)
+    if not channel:
+        sys.exit(f"sc-sync-binds: no Star Citizen {args.channel} install found; pass --game-dir "
+                 "(the StarCitizen folder inside your Wine prefix)")
+    if not os.path.isfile(args.profile):
+        sys.exit(f"sc-sync-binds: no profile at {args.profile}")
+
+    binds = default_binds(channel)
+    mine = user_binds(channel)
+    binds.update(mine)
+    report = sync(args.profile, binds, args.dry_run)
+    if not args.quiet or any("unbound" in r for r in report):
+        print(f"Star Citizen binds from {channel} ({len(mine)} of your own keyboard rebinds)")
+        print("\n".join(report) if report else "  deck already matches the game")
+        if args.dry_run:
+            print("(dry run: nothing written)")
+
+
+if __name__ == "__main__":
+    main()

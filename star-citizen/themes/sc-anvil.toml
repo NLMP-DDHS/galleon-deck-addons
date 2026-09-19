@@ -1,0 +1,14 @@
+# Star Citizen: Anvil Aerospace. Military night-vision green.
+bg = "#050a05"
+key_bg = "#0a140a"
+fg = "#a6f05a"
+accent = "#f2ff8c"
+dim = "#5f7a4a"
+border = "#2b4a1a"
+frame = "#7fd23c"
+tick = "accent"
+key_style = "hud"
+radius = 14
+border_width = 2
+font = "Rajdhani:bold"
+clock_font = "Orbitron:bold"

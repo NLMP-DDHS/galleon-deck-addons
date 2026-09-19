@@ -1,0 +1,14 @@
+# Star Citizen: MISC. Teal work-light with safety yellow.
+bg = "#030b0a"
+key_bg = "#071715"
+fg = "#3ee6c8"
+accent = "#ffcf4a"
+dim = "#4f8078"
+border = "#145048"
+frame = "#3ee6c8"
+tick = "accent"
+key_style = "hud"
+radius = 16
+border_width = 2
+font = "Rajdhani:semibold"
+clock_font = "Orbitron:medium"

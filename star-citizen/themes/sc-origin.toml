@@ -1,0 +1,14 @@
+# Star Citizen: Origin Jumpworks. Luxury ivory and gold.
+bg = "#0a0907"
+key_bg = "#14120e"
+fg = "#f3ede0"
+accent = "#d9b25c"
+dim = "#857a66"
+border = "#4d4230"
+frame = "#d9b25c"
+tick = "accent"
+key_style = "hud"
+radius = 24
+border_width = 2
+font = "Rajdhani:medium"
+clock_font = "Orbitron:medium"

@@ -1,0 +1,15 @@
+# Star Citizen: mobiGlas. The game's default holo UI: ice-cyan on deep navy,
+# white highlights. Part of the star-citizen add-on for galleon-deck.
+bg = "#020b12"
+key_bg = "#04141f"
+fg = "#5ee2ff"
+accent = "#eafcff"
+dim = "#3f7486"
+border = "#0f4a5e"
+frame = "#2ec7f2"
+tick = "accent"
+key_style = "hud"
+radius = 18
+border_width = 2
+font = "Rajdhani:semibold"
+clock_font = "Orbitron:medium"

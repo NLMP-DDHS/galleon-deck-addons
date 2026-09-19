@@ -1,0 +1,14 @@
+# Star Citizen: Roberts Space Industries. RSI blue, white highlights.
+bg = "#02060e"
+key_bg = "#07101f"
+fg = "#4aa8ff"
+accent = "#ffffff"
+dim = "#4f6b8f"
+border = "#173a66"
+frame = "#4aa8ff"
+tick = "accent"
+key_style = "hud"
+radius = 18
+border_width = 2
+font = "Rajdhani:semibold"
+clock_font = "Orbitron:medium"

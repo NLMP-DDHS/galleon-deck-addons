@@ -1,0 +1,14 @@
+# Star Citizen: Aegis Dynamics. Cold white on navy with a blue edge.
+bg = "#03070d"
+key_bg = "#08111c"
+fg = "#d9ecff"
+accent = "#58b4ff"
+dim = "#5f7488"
+border = "#22405e"
+frame = "#58b4ff"
+tick = "accent"
+key_style = "hud"
+radius = 22
+border_width = 2
+font = "Rajdhani:semibold"
+clock_font = "Orbitron:medium"
