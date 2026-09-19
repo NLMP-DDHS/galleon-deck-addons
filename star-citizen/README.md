@@ -5,8 +5,12 @@ ops, comms, on foot and emotes, plus seven themes styled on the game's own UI.
 The deck switches to this profile while the game has focus and switches back when you
 leave the game.
 
+Download `star-citizen-<version>.tar.gz` from the
+[releases](https://github.com/NLMP-DDHS/galleon-deck-addons/releases). Then, in the
+Galleon Deck app, open **Add-ons** and click **Install from file…**. Or run:
+
 ```sh
-galleon-addon install star-citizen
+galleon-addon install ~/Downloads/star-citizen-1.0.0.tar.gz
 ```
 
 ## What you get

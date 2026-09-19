@@ -11,29 +11,28 @@ a single command.
 
 ## Use
 
-Needs galleon-deck 1.1.0 or newer.
+Each add-on is a **separate download**. Take the ones you want and ignore the rest.
+They need galleon-deck 1.1.0 or newer, which includes the add-on manager.
 
-```sh
-git clone https://github.com/NLMP-DDHS/galleon-deck-addons
-cd galleon-deck-addons
-./galleon-addon list                      # what's here and what's installed
-./galleon-addon install star-citizen      # install, or upgrade to the version here
-./galleon-addon remove star-citizen       # remove again
-./galleon-addon run star-citizen sync-binds
-```
+1. Download the add-on's `.tar.gz` from the [Releases](https://github.com/NLMP-DDHS/galleon-deck-addons/releases)
+   page, e.g. `star-citizen-1.0.0.tar.gz`.
+2. In the Galleon Deck app, open the **Add-ons** tab and click **Install from file…**.
+   Or from a terminal:
 
-Or use the **Add-ons** tab in the Galleon Deck app: it lists the add-ons in this
-folder, installs, upgrades and removes them, and runs their commands. It finds the
-folder through `galleon-addon` in `~/.local/bin`, or pick the folder with the tab's folder button.
+   ```sh
+   galleon-addon install ~/Downloads/star-citizen-1.0.0.tar.gz
+   ```
 
-The first install also links `galleon-addon` into `~/.local/bin`. The running deck
-picks up the new profile within a second, with no restart.
+The running deck picks up the new profile within a second, with no restart. The
+**Add-ons** tab, or `galleon-addon list`, shows what's installed.
 
-- **Upgrading** (`install` again after a `git pull`): replaces the add-on's files and
-  keeps the theme you chose for its profile. The old profile is backed up first.
-- **Removing:** deletes the add-on's files. It also repoints anything that referred to
-  them (your start profile, auto-switch rules, other profiles using its themes), so the
-  deck never shows a config error. The profile is backed up to
+- **Upgrading:** install the newer package the same way. It replaces the add-on's
+  files and keeps the theme you chose for its profile. The old profile is backed up
+  first.
+- **Removing:** click **Remove** on the Add-ons tab, or run `galleon-addon remove star-citizen`.
+  It deletes the add-on's files. It also repoints anything that referred to them (your
+  start profile, auto-switch rules, other profiles using its themes), so the deck never
+  shows a config error. The profile is backed up to
   `~/.local/state/galleon-deck/addons/backups/`.
 - **Clashes:** an install won't overwrite a file that another add-on or you created
   unless you pass `--force`. Even then, it backs the file up first.
@@ -74,6 +73,23 @@ auto_switch = [{ class = "^mygame\\.exe$" }]
 
 Commands get `GALLEON_DECK_CONFIG` (the config folder) and `GALLEON_ADDON_DIR` in their
 environment.
+
+While working on an add-on, install it straight from its folder with
+`galleon-addon install ./my-game`. Or add this repository's folder under the Add-ons
+tab's folder button, so everything in it is listed. `galleon-addon pack ./my-game`
+builds the package.
+
+### Releasing
+
+Each add-on is released on its own. Bump `version` in its `addon.toml`, then push a tag
+named after the add-on and version:
+
+```sh
+git tag star-citizen-v1.0.0 && git push origin star-citizen-v1.0.0
+```
+
+The [release workflow](.github/workflows/release.yml) packs `star-citizen-1.0.0.tar.gz`
+and publishes it as a GitHub release with install instructions.
 
 ## License
 
