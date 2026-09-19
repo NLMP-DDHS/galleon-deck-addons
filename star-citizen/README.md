@@ -34,7 +34,8 @@ galleon-addon install star-citizen
   picked by eye from the game's look. They are not official colours.
 - **Your own binds:** each key records the game action it triggers. The install reads
   your in-game keyboard binds and updates the keys to match. After you rebind something
-  in the game, press **SYNC BINDS** on the look page, or run:
+  in the game, press **SYNC BINDS** on the look page, click **Run** next to *Sync binds* in
+the app's Add-ons tab, or run:
 
   ```sh
   galleon-addon run star-citizen sync-binds            # --dry-run to preview

@@ -22,6 +22,10 @@ cd galleon-deck-addons
 ./galleon-addon run star-citizen sync-binds
 ```
 
+Or use the **Add-ons** tab in the Galleon Deck app: it lists the add-ons in this
+folder, installs, upgrades and removes them, and runs their commands. It finds the
+folder through `galleon-addon` in `~/.local/bin`, or pick the folder with the tab's folder button.
+
 The first install also links `galleon-addon` into `~/.local/bin`. The running deck
 picks up the new profile within a second, with no restart.
 
