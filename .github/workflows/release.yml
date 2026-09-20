@@ -18,18 +18,29 @@ jobs:
           test -f "$name/addon.toml" || { echo "::error::no add-on folder '$name'"; exit 1; }
           grep -qx "version = \"$ver\"" "$name/addon.toml" || { echo "::error::$name/addon.toml isn't version $ver"; exit 1; }
           title=$(sed -n 's/^title = "\(.*\)"$/\1/p' "$name/addon.toml")
-          tar --exclude=__pycache__ --exclude='*.pyc' --owner=0 --group=0 --sort=name -czf "$name-$ver.tar.gz" "$name"
+          demo=$(ls "$name"/docs/*.gif 2>/dev/null | head -1)
+          tar --exclude=__pycache__ --exclude='*.pyc' --exclude=docs --exclude=RELEASE_NOTES.md \
+              --owner=0 --group=0 --sort=name -czf "$name-$ver.tar.gz" "$name"
           {
             echo "**$title** add-on for [galleon-deck](https://github.com/NLMP-DDHS/galleon-deck) $(sed -n 's/^requires = "\([^"]*\)".*/\1/p' "$name/addon.toml")+."
             echo
+            if [ -n "$demo" ]; then
+              echo "![$title]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$tag/$(basename "$demo"))"
+              echo
+            fi
+            if [ -f "$name/RELEASE_NOTES.md" ]; then
+              cat "$name/RELEASE_NOTES.md"
+              echo
+            fi
             echo "Download \`$name-$ver.tar.gz\` below. Then, in the Galleon Deck app, open the **Add-ons** tab and"
             echo "click **Install from file…**, or run \`galleon-addon install ~/Downloads/$name-$ver.tar.gz\`."
             echo
             echo "See the [$name README](https://github.com/$GITHUB_REPOSITORY/tree/$tag/$name) for what's inside."
           } > notes.md
           echo "FILE=$name-$ver.tar.gz" >> "$GITHUB_ENV"
+          echo "DEMO=$demo" >> "$GITHUB_ENV"
           echo "TITLE=$title $ver" >> "$GITHUB_ENV"
       - name: Publish
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" "$FILE" --title "$TITLE" --notes-file notes.md
+        run: gh release create "$GITHUB_REF_NAME" "$FILE" ${DEMO:+"$DEMO"} --title "$TITLE" --notes-file notes.md

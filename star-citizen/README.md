@@ -68,6 +68,9 @@ the app's Add-ons tab, or run:
 
 ## The switch animation's logo
 
+![The deck switching to the Star Citizen profile](docs/profile-switch.gif)
+
+
 When the deck switches to this profile it plays a short glitch with the profile's
 logo on the top screen. Out of the box that's the profile's name as a wordmark: this
 package deliberately ships no Star Citizen artwork, because the RSI and Star Citizen

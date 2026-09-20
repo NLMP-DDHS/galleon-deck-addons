@@ -1,7 +1,7 @@
 # star-citizen: a galleon-deck add-on. Install with: galleon-addon install star-citizen
 
 title = "Star Citizen"
-version = "1.0.1"
+version = "1.0.2"
 description = "Flight, combat, power, ops, comms, on-foot and emote keys for Star Citizen 4.x, in themes styled on the game's holo UI and ship MFDs. The deck switches to it while the game has focus."
 requires = "1.1.0"   # galleon-deck version: per-profile auto_switch and key_style = "hud"
 
