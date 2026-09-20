@@ -1,0 +1,246 @@
+#!/usr/bin/env python3
+"""Match the SWTOR deck profile to the quickbars you actually show in game.
+
+SWTOR keeps your keybinds on the server, so nothing on this machine can read
+them: the deck's keys are the game's defaults, and if you rebind something you
+edit the profile (the README lists every key). What the game *does* keep on disk
+is your interface layout, and that is the half worth following — which quickbars
+are switched on and how many slots each one shows.
+
+This reads the GUI profile your character is using and dims every deck key whose
+quickbar is off, or whose slot is past the end of the bar. Those keys keep their
+binds and stop pretending to be abilities you can't see.
+
+Usage: swtor-bars [--settings-dir DIR] [--character NAME] [--profile PATH]
+                  [--dry-run] [--quiet]
+
+Only the key lines change; comments and layout in the profile are kept. Nothing
+in the game folder or the Wine prefix is written to.
+"""
+
+import argparse
+import configparser
+import glob
+import os
+import re
+import sys
+import tomllib
+import xml.etree.ElementTree as ET
+
+CONFIG_DIR = os.environ.get("GALLEON_DECK_CONFIG") or os.path.join(
+    os.environ.get("XDG_CONFIG_HOME") or os.path.expanduser("~/.config"), "galleon-deck")
+STEAM_APPID = "1286830"
+# Inside a Wine prefix, from drive_c:
+SETTINGS_TAIL = os.path.join("users", "*", "AppData", "Local", "SWTOR", "swtor", "settings")
+
+
+# ------------------------------------------------------------ game files ---
+
+def steam_libraries():
+    """Every Steam library folder, from libraryfolders.vdf."""
+    roots = ["~/.local/share/Steam", "~/.steam/steam", "~/.steam/root",
+             "~/.var/app/com.valvesoftware.Steam/.local/share/Steam"]
+    libs = []
+    for root in roots:
+        vdf = os.path.expanduser(os.path.join(root, "steamapps", "libraryfolders.vdf"))
+        if not os.path.isfile(vdf):
+            continue
+        libs.append(os.path.dirname(os.path.dirname(vdf)))
+        try:
+            with open(vdf, encoding="utf-8", errors="replace") as f:
+                libs += re.findall(r'"path"\s+"([^"]+)"', f.read())
+        except OSError:
+            pass
+    return libs
+
+
+def find_settings_dirs():
+    """SWTOR settings folders, most likely first."""
+    found = []
+    for lib in steam_libraries():
+        found += glob.glob(os.path.join(lib, "steamapps", "compatdata", STEAM_APPID,
+                                        "pfx", "drive_c", SETTINGS_TAIL))
+    for prefix in ("~/Games/*", "~/Games/*/*", "~/.local/share/lutris/prefixes/*",
+                   "~/.wine", "~/.wine*", "~/.local/share/bottles/bottles/*"):
+        found += glob.glob(os.path.join(os.path.expanduser(prefix), "drive_c", SETTINGS_TAIL))
+    seen = []
+    for d in found:
+        if os.path.isdir(d) and d not in seen:
+            seen.append(d)
+    return seen
+
+
+def gui_profile_path(settings, character=None):
+    """The GUI profile XML the character last used, and the character's name.
+
+    Each character has a `<server>_<name>_PlayerGUIState.ini` naming its current
+    profile; the most recently written one is whoever you played last.
+    """
+    states = sorted(glob.glob(os.path.join(settings, "*_PlayerGUIState.ini")),
+                    key=os.path.getmtime, reverse=True)
+    if character:
+        want = character.lower()
+        states = [s for s in states
+                  if want in os.path.basename(s)[:-len("_PlayerGUIState.ini")].lower()]
+        if not states:
+            raise LookupError(f"no character matching {character!r} in {settings}")
+    for state in states:
+        name = os.path.basename(state)[:-len("_PlayerGUIState.ini")]
+        name = name.split("_", 1)[1] if "_" in name else name
+        ini = configparser.ConfigParser(interpolation=None)
+        ini.optionxform = str
+        try:
+            ini.read(state, encoding="utf-8")
+            profile = ini.get("Settings", "GUI_Current_Profile", fallback="").strip()
+        except (configparser.Error, OSError):
+            continue
+        if profile:
+            path = os.path.join(settings, "GUIProfiles", profile + ".xml")
+            if os.path.isfile(path):
+                return path, name
+    # No usable state file: fall back to the newest profile in the folder.
+    xmls = sorted(glob.glob(os.path.join(settings, "GUIProfiles", "*.xml")),
+                  key=os.path.getmtime, reverse=True)
+    if xmls:
+        return xmls[0], os.path.splitext(os.path.basename(xmls[0]))[0]
+    raise LookupError(f"no GUI profile in {settings}")
+
+
+def quickbars(xml_path):
+    """{bar number: slots you can see} for QuickBar1..6. A bar that is switched
+    off, or missing from the profile, has 0 slots."""
+    root = ET.parse(xml_path).getroot()
+
+    def value(bar, field, default):
+        node = bar.find(field)
+        if node is None or node.get("Value") is None:
+            return default
+        try:
+            return float(node.get("Value"))
+        except ValueError:
+            return default
+
+    bars = {}
+    for n in range(1, 7):
+        bar = root.find(f"QuickBar{n}")
+        if bar is None:
+            bars[n] = 0
+            continue
+        enabled = value(bar, "enabled", 1.0) >= 0.5
+        bars[n] = int(value(bar, "NumVisible", 12.0)) if enabled else 0
+    return bars
+
+
+# -------------------------------------------------------------- profile ---
+
+def toml_str(text):
+    out = []
+    for ch in text:
+        o = ord(ch)
+        if ch in '"\\':
+            out.append("\\" + ch)
+        elif o < 0x20 or 0xE000 <= o <= 0xF8FF:
+            out.append(f"\\u{o:04X}")
+        elif o > 0xFFFF:
+            out.append(f"\\U{o:08X}")
+        else:
+            out.append(ch)
+    return '"' + "".join(out) + '"'
+
+
+def toml_inline(d):
+    def value(v):
+        if isinstance(v, bool):
+            return "true" if v else "false"
+        if isinstance(v, (int, float)):
+            return repr(v)
+        return toml_str(str(v))
+    return "{ " + ", ".join(f"{k} = {value(v)}" for k, v in d.items()) + " }"
+
+
+def sync(profile, bars, dry_run=False):
+    """Dim the deck keys whose quickbar slot isn't on screen, and un-dim the rest.
+    Returns (report lines, number of keys now hidden)."""
+    with open(profile) as f:
+        lines = f.read().split("\n")
+    report, hidden = [], 0
+    for n, line in enumerate(lines):
+        if "swtor_bar" not in line:
+            continue
+        m = re.match(r"^(\s*)(\{.*\})(\s*,?\s*(#.*)?)$", line)
+        if not m:
+            continue
+        try:
+            key = tomllib.loads("k = " + m.group(2))["k"]
+        except tomllib.TOMLDecodeError:
+            continue
+        bar, slot = key.get("swtor_bar"), key.get("swtor_slot")
+        if not isinstance(bar, int) or not isinstance(slot, int):
+            continue
+        visible = slot <= bars.get(bar, 0)
+        was_hidden = bool(key.get("swtor_hidden"))
+        new = {k: v for k, v in key.items() if k != "swtor_hidden"}
+        if was_hidden:
+            new.pop("fg", None)  # we dimmed it; un-dim before deciding again
+        if not visible:
+            new["fg"] = "dim"
+            new["swtor_hidden"] = True
+            hidden += 1
+        if visible != (not was_hidden):
+            why = "off" if not bars.get(bar, 0) else f"shows {bars[bar]} slots"
+            label = key.get("label", f"bar {bar} slot {slot}")
+            report.append(f"  bar {bar} slot {slot:<2} {label:<10} "
+                          + ("shown again" if visible else f"hidden (quickbar {bar} {why})"))
+        lines[n] = m.group(1) + toml_inline(new) + m.group(3)
+    if not dry_run:
+        with open(profile + ".tmp", "w") as f:
+            f.write("\n".join(lines))
+        os.replace(profile + ".tmp", profile)
+    return report, hidden
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
+    ap.add_argument("--settings-dir", help="SWTOR's settings folder inside the Wine prefix")
+    ap.add_argument("--character", help="which character's layout to follow (default: last played)")
+    ap.add_argument("--profile", default=os.path.join(CONFIG_DIR, "profiles", "swtor.toml"))
+    ap.add_argument("--dry-run", action="store_true", help="show what would change")
+    ap.add_argument("--quiet", action="store_true", help="print only problems")
+    args = ap.parse_args()
+
+    if not os.path.isfile(args.profile):
+        sys.exit(f"swtor-bars: no profile at {args.profile}")
+    dirs = [args.settings_dir] if args.settings_dir else find_settings_dirs()
+    dirs = [d for d in dirs if os.path.isdir(os.path.join(d, "GUIProfiles"))]
+    if not dirs:
+        # Not an error: the game may simply not have been run yet. The profile
+        # keeps every key, which is the right default for a fresh install.
+        msg = ("swtor-bars: no SWTOR interface settings found, so every quickbar key is "
+               "left visible. Run the game once, or pass --settings-dir.")
+        print(msg, file=sys.stderr)
+        return 0
+
+    try:
+        xml_path, character = gui_profile_path(dirs[0], args.character)
+    except (LookupError, ET.ParseError) as e:
+        print(f"swtor-bars: {e}", file=sys.stderr)
+        return 0
+    try:
+        bars = quickbars(xml_path)
+    except (ET.ParseError, OSError) as e:
+        print(f"swtor-bars: can't read {xml_path}: {e}", file=sys.stderr)
+        return 0
+
+    report, hidden = sync(args.profile, bars, args.dry_run)
+    if not args.quiet or report:
+        shown = ", ".join(f"{n}:{'off' if not v else v}" for n, v in sorted(bars.items()))
+        print(f"SWTOR quickbars for {character} ({os.path.basename(xml_path)}) — {shown}")
+        print("\n".join(report) if report
+              else f"  deck already matches ({hidden} key{'s' if hidden != 1 else ''} hidden)")
+        if args.dry_run:
+            print("(dry run: nothing written)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

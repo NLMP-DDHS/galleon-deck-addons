@@ -1,0 +1,14 @@
+# SWTOR: the holo interface. Pale blue on black, with the UI's gold accent.
+bg = "#04080e"
+key_bg = "#09141f"
+fg = "#8fd4ff"
+accent = "#ffc247"
+dim = "#48657a"
+border = "#1a4361"
+frame = "#8fd4ff"
+tick = "accent"
+key_style = "hud"
+radius = 14
+border_width = 2
+font = "Quantico"
+clock_font = "Orbitron:medium"

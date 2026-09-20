@@ -1,0 +1,14 @@
+# SWTOR: a bled sabre. Molten red on ember black, gold heat.
+bg = "#0c0302"
+key_bg = "#180705"
+fg = "#ff4b2b"
+accent = "#ffb03a"
+dim = "#8a4b3b"
+border = "#54190b"
+frame = "#ff4b2b"
+tick = "accent"
+key_style = "hud"
+radius = 18
+border_width = 2
+font = "Rajdhani:semibold"
+clock_font = "Rajdhani:bold"

@@ -1,0 +1,14 @@
+# SWTOR: beskar plate. Brushed steel on gunmetal, burnt orange trim.
+bg = "#0b0c0d"
+key_bg = "#15181a"
+fg = "#c9d2d7"
+accent = "#e07b28"
+dim = "#6b7379"
+border = "#2f3a41"
+frame = "#c9d2d7"
+tick = "accent"
+key_style = "hud"
+radius = 6
+border_width = 3
+font = "Quantico"
+clock_font = "Quantico:bold"

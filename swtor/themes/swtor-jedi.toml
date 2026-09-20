@@ -1,0 +1,14 @@
+# SWTOR: a green sabre. Blade green on near-black, white core.
+bg = "#030a06"
+key_bg = "#07150d"
+fg = "#6ee79f"
+accent = "#eefaf2"
+dim = "#48795d"
+border = "#19492f"
+frame = "#6ee79f"
+tick = "accent"
+key_style = "hud"
+radius = 18
+border_width = 2
+font = "Rajdhani:semibold"
+clock_font = "Rajdhani:bold"
