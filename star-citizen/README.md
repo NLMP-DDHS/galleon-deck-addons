@@ -62,6 +62,9 @@ the app's Add-ons tab, or run:
   *Options > Keybindings*, then sync.
 - Keys press real keyboard shortcuts, so they work with a HOTAS plugged in too. The
   deck covers the switches your stick doesn't have.
+- The **look** page carries both marks as a legend, in whatever theme you're using:
+  a `= HOLD` key with the bright frame and a dim `= UNBOUND` key. Neither does
+  anything when pressed.
 
 ## Key map (game defaults)
 
@@ -186,7 +189,7 @@ The defaults in Star Citizen 4.10. After a sync, your profile follows your own b
 | ANGRY | unbound | Angry |
 | BACK | page: back | — |
 
-**look:** one key per theme, **SYNC BINDS**, and back.
+**look:** one key per theme, **SYNC BINDS**, the `= HOLD` and `= UNBOUND` legend keys, and back.
 
 The generated **settings** page (brightness, profiles) comes last, as in every profile.
 

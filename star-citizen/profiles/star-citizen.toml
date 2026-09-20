@@ -12,6 +12,8 @@
 #
 # A bright frame marks a hold action: keep the key down, as you would on the
 # keyboard (quantum spool, autoland, ping, radial menus, power to max, ...).
+# The "look" page carries both marks as a legend: two keys that do nothing but
+# show what a hold key and an unbound key look like in the theme you picked.
 
 theme = "sc-mobiglas"
 start_page = "flight"
@@ -143,8 +145,9 @@ name = "look"
 keys = [
   { set_theme = "sc-mobiglas" }, { set_theme = "sc-rsi" }, { set_theme = "sc-aegis" },
   { set_theme = "sc-drake" }, { set_theme = "sc-anvil" }, { set_theme = "sc-origin" },
-  { set_theme = "sc-misc" }, {}, {},
+  { set_theme = "sc-misc" }, {},
   { icon = "\U000F0450", label = "SYNC BINDS", confirm = true, exec = "galleon-addon run star-citizen sync-binds" },
-  {},
+  { icon = "\U000F0D77", label = "= HOLD", border = "accent" },
+  { icon = "\U000F0E4B", label = "= UNBOUND", fg = "dim" },
   { icon = "\U000F004D", label = "BACK", page = "back", fg = "accent" },
 ]
