@@ -25,7 +25,9 @@ jobs:
             echo "**$title** add-on for [galleon-deck](https://github.com/NLMP-DDHS/galleon-deck) $(sed -n 's/^requires = "\([^"]*\)".*/\1/p' "$name/addon.toml")+."
             echo
             if [ -n "$demo" ]; then
-              echo "![$title]($GITHUB_SERVER_URL/$GITHUB_REPOSITORY/releases/download/$tag/$(basename "$demo"))"
+              # raw.githubusercontent serves it as image/gif, so it renders in the notes;
+              # a release asset URL is octet-stream and would only offer a download.
+              echo "![$title](https://raw.githubusercontent.com/$GITHUB_REPOSITORY/$tag/$demo)"
               echo
             fi
             if [ -f "$name/RELEASE_NOTES.md" ]; then
