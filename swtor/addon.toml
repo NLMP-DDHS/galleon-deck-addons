@@ -2,7 +2,7 @@
 
 title = "Star Wars: The Old Republic"
 version = "1.0.0"
-description = "Quickbars 2 and 3, targeting, interface panels, group tools and travel for SWTOR 7.x, in seven themes drawn from the game's factions. The deck switches to it while the game has focus, and follows the quickbars your interface actually shows."
+description = "The main, 2nd, 3rd and companion quickbars, plus targeting, interface panels and world keys for SWTOR 7.x, in seven themes drawn from the game's factions. The deck switches to it while the game has focus, and follows the quickbars your interface actually shows."
 requires = "1.1.0"   # galleon-deck version: per-profile auto_switch and key_style = "hud"
 
 # Commands this add-on offers: galleon-addon run swtor <name>
