@@ -8,6 +8,7 @@ a single command.
 | Add-on | What it is |
 |---|---|
 | [`star-citizen`](star-citizen/) | 8 pages of flight, combat, power, ops, comms, on-foot and emote keys for Star Citizen 4.x. It includes 7 themes styled on the game's UI, switches to itself while the game has focus, and syncs to your in-game binds. |
+| [`swtor`](swtor/) | 8 pages for Star Wars: The Old Republic 7.x: the main, 2nd, 3rd and companion quickbars, plus targeting, interface panels and world keys. It includes 7 themes drawn from the game's factions, switches to itself while the game has focus, and follows the quickbars your interface actually shows. |
 
 ## Use
 

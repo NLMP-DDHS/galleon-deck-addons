@@ -1,0 +1,172 @@
+# Star Wars: The Old Republic profile, from the swtor add-on for galleon-deck.
+#
+# The deck switches here by itself while the game window has focus (the
+# auto_switch rule below), and back to your fallback profile when you leave it.
+#
+# SWTOR keeps your keybinds on its servers, so nothing on this machine can read
+# them: these keys press the game's 7.x defaults. If you rebind something in
+# game, change the key here to match - the add-on's README lists every default,
+# and upgrading the add-on backs this file up first.
+#
+# Two things the game does NOT bind for you:
+#   * Quickbars 2-6 have no keys at all out of the box. The "bar 2" and "bar 3"
+#     pages ship dim for that reason, with the chords they expect written in.
+#     Bind them in Preferences > Key Bindings > Quickbar, then run
+#     `galleon-addon run swtor bars --bound 2,3` to light the pages up.
+#   * The main bar's slots 11 and 12 are the unshifted `-` and `=` keys, so they
+#     assume a US layout. On another layout, change them here.
+#
+# What the game does keep on disk is your interface layout, and the deck follows
+# it: `galleon-addon run swtor bars` (or SYNC BARS on the "look" page) reads the
+# GUI profile your character uses and dims every key whose quickbar is switched
+# off or whose slot is past the end of the bar. Dim keys keep their binds.
+#
+# A dim key does nothing: either its quickbar isn't bound in game, or the slot
+# isn't on your screen. The "look" page carries that mark as a legend.
+
+theme = "swtor-holo"
+start_page = "bar 1"
+auto_switch = [
+  # Under Proton the window is usually steam_app_1286830; a non-Steam install
+  # reports swtor.exe. The launcher is left alone on purpose.
+  { class = '(?i)^(swtor(\.exe)?|steam_app_1286830)$' },
+]
+
+
+[[page]]
+name = "bar 1"
+# The main quickbar: bound to 1-9, 0, - and = out of the box.
+keys = [
+  { label = "1", key = "1", swtor_bar = 1, swtor_slot = 1 },
+  { label = "2", key = "2", swtor_bar = 1, swtor_slot = 2 },
+  { label = "3", key = "3", swtor_bar = 1, swtor_slot = 3 },
+  { label = "4", key = "4", swtor_bar = 1, swtor_slot = 4 },
+  { label = "5", key = "5", swtor_bar = 1, swtor_slot = 5 },
+  { label = "6", key = "6", swtor_bar = 1, swtor_slot = 6 },
+  { label = "7", key = "7", swtor_bar = 1, swtor_slot = 7 },
+  { label = "8", key = "8", swtor_bar = 1, swtor_slot = 8 },
+  { label = "9", key = "9", swtor_bar = 1, swtor_slot = 9 },
+  { label = "10", key = "0", swtor_bar = 1, swtor_slot = 10 },
+  { label = "11", key = "MINUS", swtor_bar = 1, swtor_slot = 11 },
+  { label = "12", key = "EQUAL", swtor_bar = 1, swtor_slot = 12 },
+]
+
+[[page]]
+name = "bar 2"
+# Quickbar 2. Bind each slot to Alt+<number> in game, then: bars --bound 2
+keys = [
+  { label = "1", keys = "LEFTALT+1", swtor_bar = 2, swtor_slot = 1, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "2", keys = "LEFTALT+2", swtor_bar = 2, swtor_slot = 2, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "3", keys = "LEFTALT+3", swtor_bar = 2, swtor_slot = 3, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "4", keys = "LEFTALT+4", swtor_bar = 2, swtor_slot = 4, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "5", keys = "LEFTALT+5", swtor_bar = 2, swtor_slot = 5, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "6", keys = "LEFTALT+6", swtor_bar = 2, swtor_slot = 6, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "7", keys = "LEFTALT+7", swtor_bar = 2, swtor_slot = 7, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "8", keys = "LEFTALT+8", swtor_bar = 2, swtor_slot = 8, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "9", keys = "LEFTALT+9", swtor_bar = 2, swtor_slot = 9, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "10", keys = "LEFTALT+0", swtor_bar = 2, swtor_slot = 10, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "11", keys = "LEFTALT+MINUS", swtor_bar = 2, swtor_slot = 11, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "12", keys = "LEFTALT+EQUAL", swtor_bar = 2, swtor_slot = 12, swtor_unbound = true, fg = "dim", swtor_off = true },
+]
+
+[[page]]
+name = "bar 3"
+# Quickbar 3. Bind each slot to Shift+<number> in game, then: bars --bound 3
+keys = [
+  { label = "1", keys = "LEFTSHIFT+1", swtor_bar = 3, swtor_slot = 1, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "2", keys = "LEFTSHIFT+2", swtor_bar = 3, swtor_slot = 2, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "3", keys = "LEFTSHIFT+3", swtor_bar = 3, swtor_slot = 3, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "4", keys = "LEFTSHIFT+4", swtor_bar = 3, swtor_slot = 4, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "5", keys = "LEFTSHIFT+5", swtor_bar = 3, swtor_slot = 5, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "6", keys = "LEFTSHIFT+6", swtor_bar = 3, swtor_slot = 6, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "7", keys = "LEFTSHIFT+7", swtor_bar = 3, swtor_slot = 7, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "8", keys = "LEFTSHIFT+8", swtor_bar = 3, swtor_slot = 8, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "9", keys = "LEFTSHIFT+9", swtor_bar = 3, swtor_slot = 9, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "10", keys = "LEFTSHIFT+0", swtor_bar = 3, swtor_slot = 10, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "11", keys = "LEFTSHIFT+MINUS", swtor_bar = 3, swtor_slot = 11, swtor_unbound = true, fg = "dim", swtor_off = true },
+  { label = "12", keys = "LEFTSHIFT+EQUAL", swtor_bar = 3, swtor_slot = 12, swtor_unbound = true, fg = "dim", swtor_off = true },
+]
+
+[[page]]
+name = "companion"
+# The companion quickbar: bound to Ctrl+1-9, 0, - and = out of the box.
+keys = [
+  { label = "1", keys = "LEFTCTRL+1", swtor_bar = "companion", swtor_slot = 1 },
+  { label = "2", keys = "LEFTCTRL+2", swtor_bar = "companion", swtor_slot = 2 },
+  { label = "3", keys = "LEFTCTRL+3", swtor_bar = "companion", swtor_slot = 3 },
+  { label = "4", keys = "LEFTCTRL+4", swtor_bar = "companion", swtor_slot = 4 },
+  { label = "5", keys = "LEFTCTRL+5", swtor_bar = "companion", swtor_slot = 5 },
+  { label = "6", keys = "LEFTCTRL+6", swtor_bar = "companion", swtor_slot = 6 },
+  { label = "7", keys = "LEFTCTRL+7", swtor_bar = "companion", swtor_slot = 7 },
+  { label = "8", keys = "LEFTCTRL+8", swtor_bar = "companion", swtor_slot = 8 },
+  { label = "9", keys = "LEFTCTRL+9", swtor_bar = "companion", swtor_slot = 9 },
+  { label = "10", keys = "LEFTCTRL+0", swtor_bar = "companion", swtor_slot = 10 },
+  { label = "11", keys = "LEFTCTRL+MINUS", swtor_bar = "companion", swtor_slot = 11 },
+  { label = "12", keys = "LEFTCTRL+EQUAL", swtor_bar = "companion", swtor_slot = 12 },
+]
+
+[[page]]
+name = "target"
+# Targeting. Every key here is a game default.
+keys = [
+  { icon = "\U000F04FE", label = "NEXT", key = "TAB", swtor_action = "Target Next Enemy" },
+  { icon = "\U000F0A77", label = "PREV", keys = "LEFTSHIFT+TAB", swtor_action = "Target Previous Enemy" },
+  { icon = "\U000F0008", label = "FRIEND", keys = "LEFTCTRL+TAB", swtor_action = "Target Next Friend" },
+  { icon = "\U000F0004", label = "SELF", key = "F1", swtor_action = "Target Self" },
+  { icon = "\U000F03A6", label = "GROUP 1", key = "F2", swtor_action = "Target Group Member 1" },
+  { icon = "\U000F03A9", label = "GROUP 2", key = "F3", swtor_action = "Target Group Member 2" },
+  { icon = "\U000F03AC", label = "GROUP 3", key = "F4", swtor_action = "Target Group Member 3" },
+  { icon = "\U000F03AE", label = "GROUP 4", key = "F5", swtor_action = "Target Group Member 4" },
+  { icon = "\U000F06A9", label = "COMPANION", keys = "LEFTSHIFT+F1", swtor_action = "Target Companion" },
+  { icon = "\U000F01A3", label = "FOCUS", keys = "LEFTALT+F", swtor_action = "Set Focus Target" },
+  { icon = "\U000F01A4", label = "ASSIST", keys = "LEFTALT+T", swtor_action = "Acquire Target's Target" },
+  { icon = "\U000F02F1", label = "CENTRE", keys = "LEFTALT+C", swtor_action = "Target Center Screen Enemy" },
+]
+
+[[page]]
+name = "panels"
+# Interface windows. Every key here is a game default.
+keys = [
+  { icon = "\U000F0631", label = "CHARACTER", key = "C", swtor_action = "Character Sheet" },
+  { icon = "\U000F0E10", label = "INVENTORY", key = "I", swtor_action = "Inventory" },
+  { icon = "\U000F0AE2", label = "ABILITIES", key = "P", swtor_action = "Abilities" },
+  { icon = "\U000F05DA", label = "MISSIONS", key = "L", swtor_action = "Mission Log" },
+  { icon = "\U000F034D", label = "MAP", key = "M", swtor_action = "Area Map" },
+  { icon = "\U000F01E7", label = "GALAXY", keys = "LEFTSHIFT+M", swtor_action = "Galaxy Map" },
+  { icon = "\U000F0787", label = "STYLES", key = "K", swtor_action = "Combat Styles" },
+  { icon = "\U000F18BC", label = "GUILD", key = "G", swtor_action = "Guild Pane" },
+  { icon = "\U000F0849", label = "SOCIAL", key = "O", swtor_action = "Friends Pane" },
+  { icon = "\U000F160E", label = "LEGACY", key = "Y", swtor_action = "Legacy Pane" },
+  { icon = "\U000F0726", label = "COLLECTION", keys = "LEFTCTRL+C", swtor_action = "Collections" },
+  { icon = "\U000F0349", label = "ACTIVITIES", keys = "LEFTCTRL+G", swtor_action = "Activities / Group Finder" },
+]
+
+[[page]]
+name = "world"
+# Out in the world. Every key here is a game default.
+keys = [
+  { icon = "\U000F0498", label = "COVER", key = "F", swtor_action = "Take Cover" },
+  { icon = "\U000F068A", label = "COVER HERE", keys = "LEFTSHIFT+F", swtor_action = "Take Cover in Place" },
+  { icon = "\U000F04E5", label = "SHEATH", key = "Z", swtor_action = "Sheath / Unsheath Weapon" },
+  { icon = "\U000F0CC3", label = "SIT", key = "X", swtor_action = "Sit" },
+  { icon = "\U000F037C", label = "FLOURISH", keys = "LEFTCTRL+Z", swtor_action = "Mount Flourish" },
+  { icon = "\U000F046E", label = "AUTORUN", key = "KPASTERISK", swtor_action = "Toggle Autorun" },
+  { icon = "\U000F0583", label = "WALK", key = "KPSLASH", swtor_action = "Toggle Run / Walk" },
+  { icon = "\U000F0209", label = "HIDE UI", keys = "LEFTALT+Z", swtor_action = "Toggle User Interface" },
+  { icon = "\U000F000E", label = "COMPANIONS", key = "N", swtor_action = "Companions & Contacts" },
+  { icon = "\U000F02DE", label = "STRONGHOLD", key = "U", swtor_action = "Strongholds Management" },
+  { icon = "\U000F0493", label = "PREFS", keys = "LEFTCTRL+P", swtor_action = "Preferences" },
+  { icon = "\U000F0B79", label = "CHAT", key = "ENTER", swtor_action = "Open Chat" },
+]
+
+[[page]]
+name = "look"
+keys = [
+  { set_theme = "swtor-holo" }, { set_theme = "swtor-republic" }, { set_theme = "swtor-empire" },
+  { set_theme = "swtor-jedi" }, { set_theme = "swtor-sith" }, { set_theme = "swtor-mando" },
+  { set_theme = "swtor-cantina" }, {},
+  { icon = "\U000F04E6", label = "SYNC BARS", confirm = true, exec = "galleon-addon run swtor bars" },
+  { icon = "\U000F0100", label = "SHOT", confirm = true, exec = 'f="$HOME/Pictures/Screenshots/SWTOR_$(date +%F_%H-%M-%S).png"; mkdir -p "${f%/*}"; if command -v grim >/dev/null; then grim "$f"; elif command -v spectacle >/dev/null; then spectacle -b -n -f -o "$f"; elif command -v gnome-screenshot >/dev/null; then gnome-screenshot -f "$f"; elif command -v scrot >/dev/null; then scrot "$f"; else exit 1; fi && notify-send -i "$f" "Screenshot saved" "${f##*/}"' },
+  { icon = "\U000F0209", label = "= INACTIVE", fg = "dim" },
+  { icon = "\U000F004D", label = "BACK", page = "back", fg = "accent" },
+]

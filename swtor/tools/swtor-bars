@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
-"""Match the SWTOR deck profile to the quickbars you actually show in game.
+"""Match the SWTOR deck profile to the quickbars you actually use.
 
-SWTOR keeps your keybinds on the server, so nothing on this machine can read
-them: the deck's keys are the game's defaults, and if you rebind something you
-edit the profile (the README lists every key). What the game *does* keep on disk
-is your interface layout, and that is the half worth following — which quickbars
-are switched on and how many slots each one shows.
+SWTOR keeps your keybinds on its servers, so nothing on this machine can read
+them. What it does keep on disk is your interface layout, and that is the half
+worth following: this reads the GUI profile your character is using and dims
+every deck key whose quickbar is switched off, or whose slot is past the end of
+the bar. Dimmed keys keep their binds; they are just slots you can't see.
 
-This reads the GUI profile your character is using and dims every deck key whose
-quickbar is off, or whose slot is past the end of the bar. Those keys keep their
-binds and stop pretending to be abilities you can't see.
+The game binds the main and companion quickbars out of the box and leaves
+quickbars 2-6 unbound, so those pages ship dim. Once you have bound a bar in
+Preferences > Key Bindings > Quickbar, tell the deck with --bound:
+
+  swtor-bars --bound 2,3     # I have bound quickbars 2 and 3 in game
+  swtor-bars --unbound 3     # ...and undo that for 3
 
 Usage: swtor-bars [--settings-dir DIR] [--character NAME] [--profile PATH]
-                  [--dry-run] [--quiet]
+                  [--bound BARS] [--unbound BARS] [--dry-run] [--quiet]
 
 Only the key lines change; comments and layout in the profile are kept. Nothing
 in the game folder or the Wine prefix is written to.
@@ -107,8 +110,8 @@ def gui_profile_path(settings, character=None):
 
 
 def quickbars(xml_path):
-    """{bar number: slots you can see} for QuickBar1..6. A bar that is switched
-    off, or missing from the profile, has 0 slots."""
+    """{bar: slots you can see} for quickbars 1-6 and the companion bar. A bar
+    that is switched off, or missing from the profile, has 0 slots."""
     root = ET.parse(xml_path).getroot()
 
     def value(bar, field, default):
@@ -121,13 +124,13 @@ def quickbars(xml_path):
             return default
 
     bars = {}
-    for n in range(1, 7):
-        bar = root.find(f"QuickBar{n}")
+    for key, element in [(n, f"QuickBar{n}") for n in range(1, 7)] + [("companion", "CompanionBar")]:
+        bar = root.find(element)
         if bar is None:
-            bars[n] = 0
+            bars[key] = 0
             continue
         enabled = value(bar, "enabled", 1.0) >= 0.5
-        bars[n] = int(value(bar, "NumVisible", 12.0)) if enabled else 0
+        bars[key] = int(value(bar, "NumVisible", 12.0)) if enabled else 0
     return bars
 
 
@@ -158,12 +161,16 @@ def toml_inline(d):
     return "{ " + ", ".join(f"{k} = {value(v)}" for k, v in d.items()) + " }"
 
 
-def sync(profile, bars, dry_run=False):
-    """Dim the deck keys whose quickbar slot isn't on screen, and un-dim the rest.
-    Returns (report lines, number of keys now hidden)."""
+def bar_name(bar):
+    return "companion bar" if bar == "companion" else f"quickbar {bar}"
+
+
+def sync(profile, bars, bound=(), unbound=(), dry_run=False):
+    """Dim the deck keys whose quickbar slot isn't on screen or isn't bound in
+    game, and un-dim the rest. Returns (report lines, keys left dim)."""
     with open(profile) as f:
         lines = f.read().split("\n")
-    report, hidden = [], 0
+    report, dimmed = [], 0
     for n, line in enumerate(lines):
         if "swtor_bar" not in line:
             continue
@@ -175,28 +182,56 @@ def sync(profile, bars, dry_run=False):
         except tomllib.TOMLDecodeError:
             continue
         bar, slot = key.get("swtor_bar"), key.get("swtor_slot")
-        if not isinstance(bar, int) or not isinstance(slot, int):
+        if not isinstance(slot, int) or not (bar == "companion" or isinstance(bar, int)):
             continue
-        visible = slot <= bars.get(bar, 0)
-        was_hidden = bool(key.get("swtor_hidden"))
-        new = {k: v for k, v in key.items() if k != "swtor_hidden"}
-        if was_hidden:
+
+        was_dim = bool(key.get("swtor_off"))
+        new = {k: v for k, v in key.items() if k != "swtor_off"}
+        if was_dim:
             new.pop("fg", None)  # we dimmed it; un-dim before deciding again
-        if not visible:
+        if bar in bound:
+            new.pop("swtor_unbound", None)
+        elif bar in unbound:
+            new["swtor_unbound"] = True
+
+        no_bind = bool(new.get("swtor_unbound"))
+        visible = slot <= bars.get(bar, 0)
+        if no_bind:
+            why = f"{bar_name(bar)} isn't bound in game"
+        elif not visible:
+            why = (f"{bar_name(bar)} is off" if not bars.get(bar, 0)
+                   else f"{bar_name(bar)} shows {bars[bar]} slots")
+        else:
+            why = None
+        if why:
             new["fg"] = "dim"
-            new["swtor_hidden"] = True
-            hidden += 1
-        if visible != (not was_hidden):
-            why = "off" if not bars.get(bar, 0) else f"shows {bars[bar]} slots"
-            label = key.get("label", f"bar {bar} slot {slot}")
-            report.append(f"  bar {bar} slot {slot:<2} {label:<10} "
-                          + ("shown again" if visible else f"hidden (quickbar {bar} {why})"))
+            new["swtor_off"] = True
+            dimmed += 1
+        if bool(why) != was_dim:
+            label = key.get("label", slot)
+            where = f"{bar_name(bar)} slot {slot}"
+            report.append(f"  {where:<24} {'dim (' + why + ')' if why else 'lit'}")
         lines[n] = m.group(1) + toml_inline(new) + m.group(3)
     if not dry_run:
         with open(profile + ".tmp", "w") as f:
             f.write("\n".join(lines))
         os.replace(profile + ".tmp", profile)
-    return report, hidden
+    return report, dimmed
+
+
+def bar_list(text):
+    """"2,3" or "2 3" -> {2, 3}; "companion" is allowed too."""
+    out = set()
+    for part in re.split(r"[,\s]+", text.strip()):
+        if not part:
+            continue
+        if part.lower().startswith("comp"):
+            out.add("companion")
+        elif part.isdigit() and 1 <= int(part) <= 6:
+            out.add(int(part))
+        else:
+            raise argparse.ArgumentTypeError(f"not a quickbar: {part!r} (use 1-6 or companion)")
+    return out
 
 
 def main():
@@ -204,39 +239,43 @@ def main():
     ap.add_argument("--settings-dir", help="SWTOR's settings folder inside the Wine prefix")
     ap.add_argument("--character", help="which character's layout to follow (default: last played)")
     ap.add_argument("--profile", default=os.path.join(CONFIG_DIR, "profiles", "swtor.toml"))
+    ap.add_argument("--bound", type=bar_list, default=set(), metavar="BARS",
+                    help="quickbars you have bound in game, e.g. 2,3")
+    ap.add_argument("--unbound", type=bar_list, default=set(), metavar="BARS",
+                    help="quickbars you have unbound again")
     ap.add_argument("--dry-run", action="store_true", help="show what would change")
-    ap.add_argument("--quiet", action="store_true", help="print only problems")
+    ap.add_argument("--quiet", action="store_true", help="print only changes")
     args = ap.parse_args()
 
     if not os.path.isfile(args.profile):
         sys.exit(f"swtor-bars: no profile at {args.profile}")
+    clash = args.bound & args.unbound
+    if clash:
+        sys.exit(f"swtor-bars: {', '.join(bar_name(b) for b in sorted(clash, key=str))} "
+                 "given as both bound and unbound")
+
     dirs = [args.settings_dir] if args.settings_dir else find_settings_dirs()
     dirs = [d for d in dirs if os.path.isdir(os.path.join(d, "GUIProfiles"))]
-    if not dirs:
-        # Not an error: the game may simply not have been run yet. The profile
-        # keeps every key, which is the right default for a fresh install.
-        msg = ("swtor-bars: no SWTOR interface settings found, so every quickbar key is "
-               "left visible. Run the game once, or pass --settings-dir.")
-        print(msg, file=sys.stderr)
-        return 0
+    bars, character, xml_path = None, None, None
+    if dirs:
+        try:
+            xml_path, character = gui_profile_path(dirs[0], args.character)
+            bars = quickbars(xml_path)
+        except (LookupError, ET.ParseError, OSError) as e:
+            print(f"swtor-bars: {e}", file=sys.stderr)
+    if bars is None:
+        # Not an error: the game may simply not have been run yet, and a fresh
+        # install should keep every slot rather than hide the lot.
+        print("swtor-bars: no SWTOR interface layout found, so every slot is treated as "
+              "visible. Run the game once, or pass --settings-dir.", file=sys.stderr)
+        bars = {n: 12 for n in list(range(1, 7)) + ["companion"]}
 
-    try:
-        xml_path, character = gui_profile_path(dirs[0], args.character)
-    except (LookupError, ET.ParseError) as e:
-        print(f"swtor-bars: {e}", file=sys.stderr)
-        return 0
-    try:
-        bars = quickbars(xml_path)
-    except (ET.ParseError, OSError) as e:
-        print(f"swtor-bars: can't read {xml_path}: {e}", file=sys.stderr)
-        return 0
-
-    report, hidden = sync(args.profile, bars, args.dry_run)
+    report, dimmed = sync(args.profile, bars, args.bound, args.unbound, args.dry_run)
     if not args.quiet or report:
-        shown = ", ".join(f"{n}:{'off' if not v else v}" for n, v in sorted(bars.items()))
-        print(f"SWTOR quickbars for {character} ({os.path.basename(xml_path)}) — {shown}")
-        print("\n".join(report) if report
-              else f"  deck already matches ({hidden} key{'s' if hidden != 1 else ''} hidden)")
+        if character:
+            shown = ", ".join(f"{k}:{'off' if not v else v}" for k, v in bars.items())
+            print(f"SWTOR quickbars for {character} ({os.path.basename(xml_path)}) - {shown}")
+        print("\n".join(report) if report else f"  deck already matches ({dimmed} keys dim)")
         if args.dry_run:
             print("(dry run: nothing written)")
     return 0
