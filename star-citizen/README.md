@@ -66,6 +66,33 @@ the app's Add-ons tab, or run:
   a `= HOLD` key with the bright frame and a dim `= UNBOUND` key. Neither does
   anything when pressed.
 
+## The switch animation's logo
+
+When the deck switches to this profile it plays a short glitch with the profile's
+logo on the top screen. Out of the box that's the profile's name as a wordmark: this
+package deliberately ships no Star Citizen artwork, because the RSI and Star Citizen
+logos are Cloud Imperium's trademarks and aren't ours to redistribute.
+
+To use the real thing, take it from CIG's own Fan Kit, downloadable from
+[robertsspaceindustries.com](https://robertsspaceindustries.com). Its `03_LOGOS` folder
+holds `RSI_WHITE.png`, `STARCITIZEN_WHITE.png` and the rest:
+
+```sh
+mkdir -p ~/.config/galleon-deck/logos
+cp '.../Fankit_.../03_LOGOS/RSI_WHITE.png' ~/.config/galleon-deck/logos/rsi-white.png
+```
+
+Then pick it in the Galleon Deck app under **Look → Profile logo**, or add to
+`~/.config/galleon-deck/profiles/star-citizen.toml`:
+
+```toml
+logo = "logos/rsi-white.png"
+```
+
+The white versions read best on the dark themes, and upgrading the add-on keeps your
+choice. The kit is published for fan use under CIG's fan content policy; check its terms,
+and keep the artwork on your own machine rather than redistributing it.
+
 ## Key map (game defaults)
 
 The defaults in Star Citizen 4.10. After a sync, your profile follows your own binds.
