@@ -1,0 +1,14 @@
+# SWTOR: a Nar Shaddaa cantina. Neon magenta and signboard teal.
+bg = "#0a0410"
+key_bg = "#130a1e"
+fg = "#ff5ec4"
+accent = "#2ee6d0"
+dim = "#7a5a8a"
+border = "#3e1a53"
+frame = "#ff5ec4"
+tick = "accent"
+key_style = "rounded"
+radius = 24
+border_width = 3
+font = "Rajdhani:semibold"
+clock_font = "Orbitron:medium"

@@ -1,0 +1,14 @@
+# SWTOR: Sith Empire. Cold crimson on black, steel-grey highlights.
+bg = "#0a0405"
+key_bg = "#150809"
+fg = "#df3d42"
+accent = "#d6dade"
+dim = "#7d4a4d"
+border = "#4d151a"
+frame = "#df3d42"
+tick = "accent"
+key_style = "hud"
+radius = 10
+border_width = 3
+font = "Quantico"
+clock_font = "Orbitron:medium"

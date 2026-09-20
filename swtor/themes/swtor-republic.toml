@@ -1,0 +1,14 @@
+# SWTOR: Galactic Republic. Ochre gold on dark bronze, ivory highlights.
+bg = "#0a0906"
+key_bg = "#14110a"
+fg = "#e6c069"
+accent = "#f6f1e2"
+dim = "#7b6a45"
+border = "#4a3a17"
+frame = "#e6c069"
+tick = "accent"
+key_style = "hud"
+radius = 14
+border_width = 2
+font = "Quantico"
+clock_font = "Orbitron:medium"

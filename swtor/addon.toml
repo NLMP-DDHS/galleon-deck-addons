@@ -1,0 +1,15 @@
+# swtor: a galleon-deck add-on. Install with: galleon-addon install swtor
+
+title = "Star Wars: The Old Republic"
+version = "1.0.0"
+description = "The main, 2nd, 3rd and companion quickbars, plus targeting, interface panels and world keys for SWTOR 7.x, in seven themes drawn from the game's factions. The deck switches to it while the game has focus, and follows the quickbars your interface actually shows."
+requires = "1.1.0"   # galleon-deck version: per-profile auto_switch and key_style = "hud"
+
+# Commands this add-on offers: galleon-addon run swtor <name>
+[commands]
+bars = "tools/swtor-bars"
+
+# Run after every install or upgrade. A failure is reported but doesn't undo the
+# install (every quickbar key then stays visible, which is the right default).
+[hooks]
+post_install = ["bars --quiet"]
