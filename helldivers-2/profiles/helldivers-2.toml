@@ -1,0 +1,119 @@
+# Helldivers 2: every stratagem, one key each. From the helldivers-2 add-on for galleon-deck.
+#
+# A key holds the stratagem menu (Left Ctrl) and taps the code on W A S D,
+# the game's default binds (W up, S down, A left, D right). If you rebind the
+# menu or the directions in game, change `hold` / the letters below to match.
+# If the game drops inputs, raise step_ms (ms between taps; default 40).
+#
+# Key colours follow the game: red offensive, blue supply, green defensive,
+# yellow mission. Turn the right dial for pages.
+
+theme = "hd-super-earth"
+start_page = "mission"
+auto_switch = [
+  # Under Proton the window is steam_app_553850.
+  { class = '(?i)^(steam_app_553850|helldivers2(\.exe)?)$' },
+]
+
+
+[[page]]
+name = "mission"
+keys = [
+  { label = "REINFORCE", icon = "󰀔", fg = "accent", hold = "CTRL", sequence = "W S D A W" },
+  { label = "RESUPPLY", icon = "󰏗", fg = "accent", hold = "CTRL", sequence = "S S W D" },
+  { label = "SOS", icon = "󰡾", fg = "accent", hold = "CTRL", sequence = "W S D W" },
+  { label = "HELLBOMB", icon = "󰚑", fg = "accent", hold = "CTRL", sequence = "S W A S W D S W" },
+  { label = "EAGLE REARM", icon = "󰀝", fg = "#ff5a3c", hold = "CTRL", sequence = "W W A W D" },
+  { label = "SEAF ARTY", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D W W S" },
+  { label = "FLAG", icon = "󰈻", fg = "accent", hold = "CTRL", sequence = "S W S W" },
+  { label = "FLARE", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D D A A" },
+  { label = "UPLOAD DATA", icon = "󰈻", fg = "accent", hold = "CTRL", sequence = "A D W W W" },
+  { label = "SEISMIC", icon = "󰈻", fg = "accent", hold = "CTRL", sequence = "W W A D S S" },
+  { label = "SSSD", icon = "󰈻", fg = "accent", hold = "CTRL", sequence = "S S S W W" },
+  { label = "DRILL", icon = "󰈻", fg = "accent", hold = "CTRL", sequence = "S S A D S S" },
+]
+
+[[page]]
+name = "orbital"
+keys = [
+  { label = "PRECISION", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D D W" },
+  { label = "GATLING", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D S A W W" },
+  { label = "AIRBURST", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D D D" },
+  { label = "120MM", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D D S A D S" },
+  { label = "380MM", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D S W W A S S" },
+  { label = "WALKING", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D S D S D S" },
+  { label = "LASER", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D S W D S" },
+  { label = "RAILCANNON", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D W S S D" },
+  { label = "NAPALM BRG", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D D S A D W" },
+  { label = "EMS", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D D A S" },
+  { label = "GAS", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D D S D" },
+  { label = "SMOKE", icon = "󰑱", fg = "#ff5a3c", hold = "CTRL", sequence = "D D S W" },
+]
+
+[[page]]
+name = "eagle"
+keys = [
+  { label = "STRAFING", icon = "󰀝", fg = "#ff5a3c", hold = "CTRL", sequence = "W D D" },
+  { label = "AIRSTRIKE", icon = "󰀝", fg = "#ff5a3c", hold = "CTRL", sequence = "W D S D" },
+  { label = "CLUSTER", icon = "󰀝", fg = "#ff5a3c", hold = "CTRL", sequence = "W D S S D" },
+  { label = "NAPALM", icon = "󰀝", fg = "#ff5a3c", hold = "CTRL", sequence = "W D S W" },
+  { label = "SMOKE", icon = "󰀝", fg = "#ff5a3c", hold = "CTRL", sequence = "W D W S" },
+  { label = "110MM PODS", icon = "󰀝", fg = "#ff5a3c", hold = "CTRL", sequence = "W D W A" },
+  { label = "500KG", icon = "󰀝", fg = "#ff5a3c", hold = "CTRL", sequence = "W D S S S" },
+  { label = "REARM", icon = "󰀝", fg = "#ff5a3c", hold = "CTRL", sequence = "W W A W D" },
+  {},
+  { label = "PATRIOT", icon = "󰚩", fg = "#49b6ff", hold = "CTRL", sequence = "A S D W A S S" },
+  { label = "EMANCIPATOR", icon = "󰚩", fg = "#49b6ff", hold = "CTRL", sequence = "A S D W A S W" },
+  {},
+]
+
+[[page]]
+name = "weapons"
+keys = [
+  { label = "MG", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S A S W D" },
+  { label = "AMR", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S A D W S" },
+  { label = "STALWART", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S A S W W A" },
+  { label = "EAT", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S S A W D" },
+  { label = "RECOILLESS", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S A D D A" },
+  { label = "FLAMER", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S A W S W" },
+  { label = "AUTOCANNON", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S A S W W D" },
+  { label = "HMG", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S A W S S" },
+  { label = "RAILGUN", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S D S W A D" },
+  { label = "SPEAR", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S S W S S" },
+  { label = "GRENADE LNR", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S A W A S" },
+  { label = "LASER CAN", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S A S W A" },
+]
+
+[[page]]
+name = "support"
+keys = [
+  { label = "ARC", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S D S W A A" },
+  { label = "QUASAR", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S S W A D" },
+  { label = "COMMANDO", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S A W S D" },
+  { label = "AIRBURST RL", icon = "󰜃", fg = "#49b6ff", hold = "CTRL", sequence = "S W W A D" },
+  { label = "JUMP PACK", icon = "󰒘", fg = "#49b6ff", hold = "CTRL", sequence = "S W W S W" },
+  { label = "SUPPLY PACK", icon = "󰒘", fg = "#49b6ff", hold = "CTRL", sequence = "S A S W W S" },
+  { label = "GUARD DOG", icon = "󰒘", fg = "#49b6ff", hold = "CTRL", sequence = "S W A W D S" },
+  { label = "ROVER", icon = "󰒘", fg = "#49b6ff", hold = "CTRL", sequence = "S W A W D D" },
+  { label = "BALLISTIC", icon = "󰒘", fg = "#49b6ff", hold = "CTRL", sequence = "S A S S W A" },
+  { label = "SHIELD PACK", icon = "󰒘", fg = "#49b6ff", hold = "CTRL", sequence = "S W A D A D" },
+  {},
+  {},
+]
+
+[[page]]
+name = "defense"
+keys = [
+  { label = "MG SENTRY", icon = "󰆤", fg = "#5fd35f", hold = "CTRL", sequence = "S W D D W" },
+  { label = "GATLING", icon = "󰆤", fg = "#5fd35f", hold = "CTRL", sequence = "S W D A" },
+  { label = "AUTOCANNON", icon = "󰆤", fg = "#5fd35f", hold = "CTRL", sequence = "S W D W A W" },
+  { label = "ROCKET", icon = "󰆤", fg = "#5fd35f", hold = "CTRL", sequence = "S W D D A" },
+  { label = "MORTAR", icon = "󰆤", fg = "#5fd35f", hold = "CTRL", sequence = "S W D D S" },
+  { label = "EMS MORTAR", icon = "󰆤", fg = "#5fd35f", hold = "CTRL", sequence = "S W D S D" },
+  { label = "HMG NEST", icon = "󰆤", fg = "#5fd35f", hold = "CTRL", sequence = "S W A D D A" },
+  { label = "TESLA", icon = "󰆤", fg = "#5fd35f", hold = "CTRL", sequence = "S W D W A D" },
+  { label = "SHIELD RELAY", icon = "󰆤", fg = "#5fd35f", hold = "CTRL", sequence = "S S A D A D" },
+  { label = "AP MINES", icon = "󰚑", fg = "#5fd35f", hold = "CTRL", sequence = "S A W D" },
+  { label = "FIRE MINES", icon = "󰚑", fg = "#5fd35f", hold = "CTRL", sequence = "S A A S" },
+  { label = "AT MINES", icon = "󰚑", fg = "#5fd35f", hold = "CTRL", sequence = "S A W W" },
+]
