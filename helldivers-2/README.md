@@ -1,7 +1,7 @@
 # Helldivers 2 add-on
 
-A Galleon Deck profile for Helldivers 2: every stratagem on its own key. A key holds
-the stratagem menu and taps the code for you, so calling in a 500kg is one press. The
+A Galleon Deck profile for Helldivers 2: every stratagem on its own key. Open the
+stratagem menu and a key taps the code for you, so calling in a 500kg is one press. The
 deck switches to this profile while the game has focus and switches back when you
 leave it.
 
@@ -35,10 +35,11 @@ It needs galleon-deck **1.2.0** or later, the release that added the `sequence` 
 
 ## Binds
 
-Keys press the game's defaults: hold **Left Ctrl** for the stratagem menu, then
-**W A S D** for up, left, down, right. If you've rebound either in game, edit
-`~/.config/galleon-deck/profiles/helldivers-2.toml`: change `hold`, or the letters in
-each `sequence`.
+Open the stratagem menu in game as usual (tap **TAB**), then press a key: it taps the
+code on **W A S D**, the game's default directions (up, left, down, right). The deck
+doesn't touch the menu key. If you've rebound the directions in game, edit
+`~/.config/galleon-deck/profiles/helldivers-2.toml` and change the letters in each
+`sequence`, or change them in the Galleon Deck app under **Key sequence**.
 
 If the game drops inputs (a code fails only sometimes), raise `step_ms` on the key:
 the gap between taps in milliseconds, default 40.
