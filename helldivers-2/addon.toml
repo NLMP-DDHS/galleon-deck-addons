@@ -1,0 +1,6 @@
+# helldivers-2: a galleon-deck add-on. Install with: galleon-addon install helldivers-2
+
+title = "Helldivers 2"
+version = "1.0.0"
+description = "Every stratagem on its own key, from Reinforce to the Emancipator, across six pages colour-coded like the game. Open the stratagem menu and a key taps the code for you. The deck switches to it while the game has focus."
+requires = "1.2.0"   # galleon-deck version: the sequence action

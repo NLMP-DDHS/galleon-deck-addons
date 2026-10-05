@@ -1,0 +1,14 @@
+# Helldivers 2: Super Earth. Hazard yellow on black, like the stratagem HUD.
+bg = "#050505"
+key_bg = "#0e0e0c"
+fg = "#ffe710"
+accent = "#ffe710"
+dim = "#6b6540"
+border = "#3a3720"
+frame = "#ffe710"
+tick = "accent"
+key_style = "hud"
+radius = 10
+border_width = 2
+font = "Rajdhani:bold"
+clock_font = "Orbitron:medium"

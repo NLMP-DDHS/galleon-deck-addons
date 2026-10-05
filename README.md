@@ -9,6 +9,7 @@ a single command.
 |---|---|
 | [`star-citizen`](star-citizen/) | 8 pages of flight, combat, power, ops, comms, on-foot and emote keys for Star Citizen 4.x. It includes 7 themes styled on the game's UI, switches to itself while the game has focus, and syncs to your in-game binds. |
 | [`swtor`](swtor/) | 8 pages for Star Wars: The Old Republic 7.x: the main, 2nd, 3rd and companion quickbars, plus targeting, interface panels and world keys. It includes 7 themes drawn from the game's factions, switches to itself while the game has focus, and follows the quickbars your interface actually shows. |
+| [`helldivers-2`](helldivers-2/) | Every Helldivers 2 stratagem on its own key, across 6 pages colour-coded like the game. Each key holds the stratagem menu and taps the code. It switches to itself while the game has focus. Needs galleon-deck 1.2.0. |
 
 ## Use
 
